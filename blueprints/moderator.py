@@ -6,7 +6,7 @@ from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
 import helpfuncs.functions as functions
-from helpfuncs.jsonfunctions import getModeratorList
+from helpfuncs.jsonfunctions import getData
 from helpfuncs.vkfunctions import banUser, getUserInfo, post, uploadImage
 
 from .rules import CheckRights, Rights
@@ -53,7 +53,7 @@ async def banAndPost(message: Message, userID, time=None, comment="", moderatorI
     full_name = f'{fullInfo["first_name"]} {fullInfo["last_name"]}'
 
     if not moderatorID.startswith("\\"):
-        moderatorID = await getModeratorList()
+        moderatorID = await getData()
         banner = moderatorID[str(message.from_id)]
         level = await functions.reformatModeratorID(banner["rights"])
         moderatorID = level + str(banner["ID"])

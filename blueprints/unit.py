@@ -7,7 +7,7 @@ from helpfuncs.functions import reformatModeratorDict
 from helpfuncs.jsonfunctions import (
     addModerator,
     deleteModerator,
-    getModeratorList,
+    getData,
     findModeratorByID,
 )
 from helpfuncs.vkfunctions import getUserInfo
@@ -78,7 +78,7 @@ async def deleteModeratorVK(message: Message, vkID):
 
 @unit_labeler.private_message(IsUnit(), text="Модсписок")
 async def checkModeratorsVK(message: Message):
-    data = await getModeratorList()
+    data = await getData()
     reformatted = await reformatModeratorDict(data["units"], "SМВ")
     reformatted += await reformatModeratorDict(data["moderators"])
     await message.answer(f"Модераторы с правами у бота:\n{reformatted}")

@@ -5,23 +5,20 @@ from typing import Union
 from .functions import findKeyByValue
 
 
-async def getModeratorList() -> dict:
-    with open("moderators.json", "r", encoding="utf-8") as file:
+async def getData(filename: str = "moderators.json") -> dict:
+    with open(filename, "r", encoding="utf-8") as file:
         data = json.load(file)
     return data
 
 
-async def saveData(dictionary: dict) -> None:
-    with open("moderators.json", "w+", encoding="utf-8") as file:
+async def saveData(filename: str = "moderators.json", dictionary: dict = {}) -> None:
+    with open(filename, "w+", encoding="utf-8") as file:
         json.dump(dictionary, file, ensure_ascii=False, indent=4)
 
 
 async def refreshAndSort(dictionary: dict) -> str:
-    dictionary = dict(
-        sorted(dictionary.items(), key=lambda x: x[1]["ID"])
-    )
-
-    await saveData(dictionary)
+    data = dict(sorted(dictionary.items(), key=lambda x: x[1]["ID"]))
+    await saveData("moderators.json", data)
     return "success"
 
 
@@ -36,7 +33,7 @@ async def addModerator(moderatorID: str, moderatorData: dict) -> str:
         str: "notExists" if there is no moderatorID in dictionary
              "success" if succeed
     """
-    allMods = await getModeratorList()
+    allMods = await getData()
 
     if moderatorID in allMods:
         return "exists"
@@ -56,7 +53,7 @@ async def deleteModerator(moderatorID: str) -> str:
         str: "notExists" if there is no moderatorID in dictionary
              "success" if succeed
     """
-    allMods = await getModeratorList()
+    allMods = await getData()
 
     if moderatorID not in allMods:
         return "notExists"
@@ -80,7 +77,7 @@ async def editValues(
         str: "notExists" if there is no moderatorID in dictionary
              "success" if succeed
     """
-    allMods = await getModeratorList()
+    allMods = await getData()
 
     if moderatorID not in allMods:
         return "notExists"
@@ -92,7 +89,7 @@ async def editValues(
 
 
 async def findModeratorByID(moderatorID: str):
-    allMods = await getModeratorList()
+    allMods = await getData()
     result = await findKeyByValue(
         value=int(findall("\d+", moderatorID)[0]),
         key="ID",

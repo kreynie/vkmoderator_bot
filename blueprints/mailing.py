@@ -5,7 +5,7 @@ from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
 from helpfuncs.functions import asyncListGenerator
-from helpfuncs.jsonfunctions import getModeratorList
+from helpfuncs.jsonfunctions import getData
 
 from .rules import CheckRights, Rights
 
@@ -16,7 +16,7 @@ mailing_labeler.custom_rules["access"] = CheckRights
 
 @mailing_labeler.private_message(access=Rights.supermoderator, text="Рассылка <mail>")
 async def mailing(message: Message, mail: str = None):
-    moderators = await getModeratorList()
+    moderators = await getData()
     failedList = []
     async for moderator in asyncListGenerator(moderators["moderators"]):
         try:

@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choice
 from time import time
 
 from aiofiles import open as aiOpen
@@ -127,6 +127,6 @@ async def get_texts_from_comments(comments: list) -> list:
     return texts
 
 
-async def get_text_from_comments(comments: list) -> str:
+async def get_random_text_from_comments(comments: list) -> str:
     text = await get_texts_from_comments(comments)
-    return text[0] if text != [] else None
+    return choice(text) if text != [] else None

@@ -3,11 +3,11 @@ from enum import Enum
 from vkbottle.dispatch.rules import ABCRule
 from vkbottle.user import Message
 
-from helpfuncs.jsonfunctions import getModeratorList
+from helpfuncs.jsonfunctions import getData
 
 
 async def check_permissions(user_id: str, level: int = 1) -> bool:
-    rights = await getModeratorList()
+    rights = await getData()
     if user_id in rights:
         rights = rights[user_id]["rights"]
         return rights >= level
@@ -26,7 +26,7 @@ class CheckRights(ABCRule[Message]):
         self.level = level
 
     async def check(self, event: Message) -> bool:
-        rights = await getModeratorList()
+        rights = await getData()
         if str(event.from_id) in rights:
             rights = rights[str(event.from_id)]["rights"]
             permissions = await check_permissions(str(event.from_id), self.level.value)
