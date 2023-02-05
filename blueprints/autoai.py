@@ -66,8 +66,10 @@ async def ai_add_text(message: Message, level: int, text: str):
 
 
 async def ai_train():
-    state = await check_ai_state(AIState.ACTIVE_STATE)
+    global state, ai_state
+
     while True:
+        state = await check_ai_state(AIState.ACTIVE_STATE)
         if state:
             await send_message(651285022, 0, message="AI training started")
             try:
@@ -86,6 +88,4 @@ async def ai_train():
                 await send_message(
                     651285022, 0, message=f"Failed\n{e.code}: {e.description}"
                 )
-        state = await check_ai_state(AIState.ACTIVE_STATE)
         await asleep(600)
-
