@@ -52,9 +52,8 @@ async def help_handler(message: Message):
                 "\n\n",
                 "Остальные команды: ",
                 "▶️ Права <user_id> <rights:int>",
-                "ai_active",
-                "ai_disable",
-                "ai_add_text <level> <text>",
+                "▶️ ai_switch",
+                "▶️ ai_add_text <level> <text>",
             )
         )
 
@@ -62,7 +61,7 @@ async def help_handler(message: Message):
 
 
 @help_labeler.private_message(access=Rights.moderator, text="Сокращения")
-async def getAbbreviations(message: Message):
+async def get_abbreviations(message: Message):
     await message.answer(
         message="Доступные сокращения",
         attachment="photo776084434_457239060",

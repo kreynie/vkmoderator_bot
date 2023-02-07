@@ -3,7 +3,7 @@ from re import search
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
-from helpfuncs.jsonfunctions import findModeratorByID
+from helpfuncs.jsonfunctions import find_moderator_by_id
 
 from .rules import CheckRights, Rights
 
@@ -14,7 +14,7 @@ lead_labeler.custom_rules["access"] = CheckRights
 
 
 @lead_labeler.private_message(access=Rights.unit, text="Минус <reason>")
-async def matchIncorrectBan(message: Message, reason: str = ""):
+async def match_incorrect_ban(message: Message, reason: str = ""):
     if message.attachments is None:
         await message.answer("Не найден пересланный пост")
         return
@@ -22,17 +22,17 @@ async def matchIncorrectBan(message: Message, reason: str = ""):
         await message.answer("Переслан не пост")
         return
 
-    postText = message.attachments[0].wall.text
-    matchModeratorID = search(r".*((М|M)(В|B)\d+).*", postText)
-    if matchModeratorID is None:
+    post_text = message.attachments[0].wall.text
+    match_moderator_id = search(r".*((М|M)(В|B)\d+).*", post_text)
+    if match_moderator_id is None:
         await message.answer("Не удалось найти МВ в тексте поста")
         return
 
     try:
-        moderatorVKID = await findModeratorByID(matchModeratorID.group(0))
-        senderInfo = await message.get_user()
-        reason = f"⚠️ {senderInfo.first_name} {senderInfo.last_name} нашел ошибку в твоем бане.\nКомментарий: {reason}"
-        await message.ctx_api.messages.send(int(moderatorVKID), 0, message=reason)
+        moderator_vk_id = await find_moderator_by_id(match_moderator_id.group(0))
+        sender_info = await message.get_user()
+        reason = f"⚠️ {sender_info.first_name} {sender_info.last_name} нашел ошибку в твоем бане.\nКомментарий: {reason}"
+        await message.ctx_api.messages.send(int(moderator_vk_id), 0, message=reason)
     except VKAPIError:
         await message.answer("ВК не дал отправить сообщение модератору")
     except:

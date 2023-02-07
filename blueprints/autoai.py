@@ -7,7 +7,7 @@ from vkbottle.user import Message, UserLabeler
 from .rules import CheckRights, Rights
 from helpfuncs.functions import get_random_text_from_comments
 from helpfuncs.vkfunctions import get_last_post, get_comments, send_message
-from helpfuncs.jsonfunctions import saveData, getData
+from helpfuncs.jsonfunctions import save_data, get_data
 
 
 from wordsdetector import BadWordsDetector
@@ -27,12 +27,12 @@ class AIState(Enum):
 
 
 async def get_ai_state() -> int:
-    ai_state = await getData("ai.json")
+    ai_state = await get_data("ai.json")
     return ai_state.get("state", AIState.ACTIVE_STATE.value)
 
 
 async def set_ai_state(state: AIState) -> None:
-    await saveData("ai.json", {"state": state.value})
+    await save_data("ai.json", {"state": state.value})
 
 
 @ai_labeler.private_message(

@@ -4,8 +4,8 @@ from random import randint
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
-from helpfuncs.functions import asyncListGenerator
-from helpfuncs.jsonfunctions import getData
+from helpfuncs.functions import async_list_generator
+from helpfuncs.jsonfunctions import get_data
 
 from .rules import CheckRights, Rights
 
@@ -16,9 +16,9 @@ mailing_labeler.custom_rules["access"] = CheckRights
 
 @mailing_labeler.private_message(access=Rights.supermoderator, text="Рассылка <mail>")
 async def mailing(message: Message, mail: str = None):
-    moderators = await getData()
+    moderators = await get_data()
     failedList = []
-    async for moderator in asyncListGenerator(moderators["moderators"]):
+    async for moderator in async_list_generator(moderators["moderators"]):
         try:
             await message.ctx_api.messages.send(
                 int(moderator), randint(0, 10000), message=mail

@@ -5,11 +5,11 @@ from vkbottle.tools import PhotoWallUploader
 from config import api, banGroupID, banReasonGroupID
 
 
-async def uploadImage(photo):
+async def upload_image(photo):
     return await PhotoWallUploader(api).upload(photo)
 
 
-async def getUserInfo(text) -> dict:
+async def get_user_info(text) -> dict:
     matched = match(r".*vk.com/(.*)", text)
     if matched is not None:
         info = await api.users.get([matched.group(1)])
@@ -22,7 +22,7 @@ async def getUserInfo(text) -> dict:
     return None
 
 
-async def banUser(*args):
+async def ban(*args):
     await api.groups.ban(abs(banGroupID), *args)
 
 

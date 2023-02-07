@@ -6,7 +6,7 @@ from aiohttp import ClientSession as aioClientSession
 
 SECONDS = 3600
 
-formattedTime = {
+formatted_time = {
     "час": 1,
     "день": 24,
     "сутки": 24,
@@ -16,22 +16,22 @@ formattedTime = {
 }
 
 
-async def reformatTime(banTime: str = "час"):
-    if formattedTime.get(banTime) is None:
+async def reformat_time(banTime: str = "час"):
+    if formatted_time.get(banTime) is None:
         return None
-    banUntil = time() + (formattedTime.get(banTime) * SECONDS)
-    return int(banUntil)
+    ban_until = time() + (formatted_time.get(banTime) * SECONDS)
+    return int(ban_until)
 
 
-async def timeToText(banTime: str = "час"):
-    if banTime in formattedTime:
+async def time_to_text(banTime: str = "час"):
+    if banTime in formatted_time:
         return f"на {banTime}"
     elif banTime in (None, "", "перм", "навсегда", "пермач"):
         return "навсегда"
     return 0
 
 
-formattedComments = {
+formatted_comments = {
     "ннл": "Ненормативная лексика",
     "рек": "Реклама",
     "реклама": "Реклама",
@@ -63,12 +63,12 @@ formattedComments = {
 }
 
 
-async def reformatComment(comment: str) -> str:
-    if formattedComments.get(comment) is not None:
-        return formattedComments.get(comment)
+async def reformat_comment(comment: str) -> str:
+    if formatted_comments.get(comment) is not None:
+        return formatted_comments.get(comment)
 
 
-async def getMaxSizePhotoURL(photo: list) -> str:
+async def get_max_size_photo_URL(photo: list) -> str:
     maxSize, maxSizeIndex = 0, 0
     for index, size in enumerate(photo):
         if maxSize < size.height:
@@ -77,22 +77,22 @@ async def getMaxSizePhotoURL(photo: list) -> str:
     return dict(photo[maxSizeIndex])["url"]
 
 
-async def downloadPhoto(url: str) -> str:
+async def download_photo(url: str) -> str:
     async with aioClientSession() as session:
         async with session.get(url) as resp:
-            fileName = f"{round(time() + randint(0, 1000))}.jpg"
+            file_name = f"{round(time() + randint(0, 1000))}.jpg"
             if resp.status == 200:
-                async with aiOpen(fileName, mode="wb") as f:
+                async with aiOpen(file_name, mode="wb") as f:
                     await f.write(await resp.read())
                     await f.close()
-    return fileName
+    return file_name
 
 
-async def reformatModeratorID(rights: int = 1) -> str:
+async def reformat_moderator_id(rights: int = 1) -> str:
     return "SМВ" if rights == 3 else "МВ"
 
 
-async def reformatModeratorDict(moderatorDict: dict) -> str:
+async def reformat_moderator_dict(moderatorDict: dict) -> str:
     r = []
     for moderator in moderatorDict:
         current_moderator = moderatorDict[moderator]
@@ -100,7 +100,7 @@ async def reformatModeratorDict(moderatorDict: dict) -> str:
             current_moderator["first_name"] != "TEST"
             and current_moderator["rights"] >= 1
         ):
-            level = await reformatModeratorID(current_moderator["rights"])
+            level = await reformat_moderator_id(current_moderator["rights"])
             r.append(
                 f"@id{moderator}"
                 f"({current_moderator['first_name']} {current_moderator['last_name']})"
@@ -110,12 +110,12 @@ async def reformatModeratorDict(moderatorDict: dict) -> str:
     return "\n".join(r)
 
 
-async def asyncListGenerator(lst: list):
+async def async_list_generator(lst: list):
     for key in lst:
         yield key
 
 
-async def findKeyByValue(value, key, dictionary: dict):
+async def find_key_by_value(value, key, dictionary: dict):
     for val in dictionary:
         if dictionary[val][key] == value:
             return val

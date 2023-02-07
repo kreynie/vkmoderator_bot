@@ -5,7 +5,7 @@ from .mailing import mailing_labeler
 from .moderator import moderator_labeler
 from .moderator_extended import supmoder_labeler
 
-from .autoai import ai_labeler, ai_train
+from .autoai import ai_labeler
 
 
 labelers = [

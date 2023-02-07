@@ -6,8 +6,8 @@ from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
 import helpfuncs.functions as functions
-from helpfuncs.jsonfunctions import getData
-from helpfuncs.vkfunctions import banUser, getUserInfo, post, uploadImage
+from helpfuncs.jsonfunctions import get_data
+from helpfuncs.vkfunctions import ban, get_user_info, post, upload_image
 
 from .rules import CheckRights, Rights
 
@@ -19,30 +19,32 @@ moderator_labeler.custom_rules["access"] = CheckRights
 @moderator_labeler.private_message(
     access=Rights.moderator,
     text=[
-        "Бан <userID> <comment> <time> <moderatorID>",
-        "Бан <userID> <comment> <time>",
+        "Бан <user_id> <comment> <ban_time> <moderator_id>",
+        "Бан <user_id> <comment> <ban_time>",
     ],
 )
-async def banAndPost(message: Message, userID, time=None, comment="", moderatorID=""):
-    returnReason = None
+async def ban_and_post(
+    message: Message, user_id, ban_time, comment="", moderator_id=""
+):
+    return_reason = None
 
-    fullInfo = await getUserInfo(userID)
-    fullComment = await functions.reformatComment(comment.lower())
-    banTimeText = await functions.timeToText(time)
+    full_info = await get_user_info(user_id)
+    full_comment = await functions.reformat_comment(comment.lower())
+    ban_time_text = await functions.time_to_text(ban_time)
 
-    if fullInfo is None:
-        returnReason = "Ошибка получения информации из ссылки"
-    if fullComment is None:
-        returnReason = "Проверь ПРИЧИНУ бана"
-    if banTimeText == 0:
-        returnReason = "Проверь ВРЕМЯ бана"
+    if full_info is None:
+        return_reason = "Ошибка получения информации из ссылки"
+    if full_comment is None:
+        return_reason = "Проверь ПРИЧИНУ бана"
+    if ban_time_text == 0:
+        return_reason = "Проверь ВРЕМЯ бана"
 
-    if returnReason is not None:
-        await message.answer(f"⚠️Ошибка получения информации\n{returnReason}")
+    if return_reason is not None:
+        await message.answer(f"⚠️Ошибка получения информации\n{return_reason}")
         return
 
     photos = []
-    if banTimeText[3:] not in ("час", "сутки", "день") or comment.lower() == "ода":
+    if ban_time_text[3:] not in ("час", "сутки", "день") or comment.lower() == "ода":
         photos = message.get_photo_attachments()
         if photos == []:
             await message.answer(
@@ -50,49 +52,49 @@ async def banAndPost(message: Message, userID, time=None, comment="", moderatorI
             )
             return
 
-    full_name = f'{fullInfo["first_name"]} {fullInfo["last_name"]}'
+    user_full_name = f'{full_info["first_name"]} {full_info["last_name"]}'
 
-    if not moderatorID.startswith("\\"):
-        moderatorID = await getData()
-        banner = moderatorID[str(message.from_id)]
-        level = await functions.reformatModeratorID(banner["rights"])
-        moderatorID = level + str(banner["ID"])
+    if not moderator_id.startswith("\\"):
+        moderator_id = await get_data()
+        banner = moderator_id[str(message.from_id)]
+        level = await functions.reformat_moderator_id(banner["rights"])
+        moderator_id = level + str(banner["ID"])
     else:
-        moderatorID = moderatorID[1:]
+        moderator_id = moderator_id[1:]
 
-    time = await functions.reformatTime(time)
-    await banUser(
-        fullInfo["id"],
-        time,
+    time_unix = await functions.reformat_time(ban_time)
+    await ban(
+        full_info["id"],
+        time_unix,
         0,
-        f"{fullComment} | {moderatorID}",
+        f"{full_comment} | {moderator_id}",
         True,
     )
 
-    if time is not None:
-        tempTime = localtime(await functions.reformatTime(time))
-        fTime = strftime("%d.%m.%y %H:%M", tempTime)
-        await message.answer(
-            f"{full_name} получил банхаммером\n" f"Болеть будет до {fTime}"
-        )
-        del tempTime, fTime
+    if time_unix is None:
+        ftime = "насвегда"
+    else:
+        temp_time = strftime("%d.%m.%y %H:%M", localtime(time_unix))
+        ftime = f"\nБолеть будет до {temp_time}"
+
+    await message.answer(f"{user_full_name} получил банхаммером {ftime}\n")
+    del temp_time, ftime
 
     if photos != []:
         try:
             pics = []
-            async for photo in functions.asyncListGenerator(photos):
-                url = await functions.getMaxSizePhotoURL(photo.sizes)
-                filename = await functions.downloadPhoto(url)
-                data = await uploadImage(filename)
+            async for photo in functions.async_list_generator(photos):
+                url = await functions.get_max_size_photo_URL(photo.sizes)
+                filename = await functions.download_photo(url)
+                data = await upload_image(filename)
                 remove(filename)
                 pics.append(data)
 
             reply = (
-                f"{full_name}",
-                f"https://vk.com/id{fullInfo['id']}",
-                f"{comment} - {banTimeText[3:]}",
-                f"@id{message.from_id}({moderatorID})\n",
-                "made with Moderator Bot",
+                f"{user_full_name}",
+                f"https://vk.com/id{full_info['id']}",
+                f"{comment} - {ban_time}",
+                f"@id{message.from_id}({moderator_id})\n",
             )
 
             await post(
