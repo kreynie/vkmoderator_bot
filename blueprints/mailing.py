@@ -12,14 +12,14 @@ from .rules import CheckRights, Rights
 mailing_labeler = UserLabeler()
 mailing_labeler.vbml_ignore_case = True
 mailing_labeler.custom_rules["access"] = CheckRights
-json_handler = JSONHandler()
 
 
 @mailing_labeler.private_message(access=Rights.supermoderator, text="Рассылка <mail>")
 async def mailing(message: Message, mail: str = None):
+    json_handler = JSONHandler()
     moderators = await json_handler.get_data()
     failedList = []
-    async for moderator in async_list_generator(moderators["moderators"]):
+    async for moderator in async_list_generator(moderators):
         try:
             await message.ctx_api.messages.send(
                 int(moderator), randint(0, 10000), message=mail
