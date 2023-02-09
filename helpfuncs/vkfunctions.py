@@ -36,7 +36,7 @@ async def get_last_post():
 
 
 async def get_comments(**kwargs):
-    comments = await api.wall.get_comments(banGroupID, sort="desc", **kwargs)
+    comments = await api.wall.get_comments(owner_id=banGroupID, sort="desc", **kwargs)
     return comments
 
 

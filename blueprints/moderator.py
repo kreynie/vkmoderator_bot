@@ -5,8 +5,8 @@ from time import localtime, strftime
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
-import helpfuncs.functions as functions
-from helpfuncs.jsonfunctions import get_data
+from helpfuncs.functions import Reformatter, PhotoHandler, async_list_generator
+from helpfuncs.jsonfunctions import JSONHandler, ModeratorHandler
 from helpfuncs.vkfunctions import ban, get_user_info, post, upload_image
 
 from .rules import CheckRights, Rights
@@ -29,14 +29,15 @@ async def ban_and_post(
     return_reason = None
 
     full_info = await get_user_info(user_id)
-    full_comment = await functions.reformat_comment(comment.lower())
-    ban_time_text = await functions.time_to_text(ban_time)
+    reformatter = Reformatter(ban_time)
+    full_comment = await reformatter.reformat_comment(comment.lower())
+    ban_time_text = await reformatter.reformat_time_to_text()
 
     if full_info is None:
         return_reason = "Ошибка получения информации из ссылки"
     if full_comment is None:
         return_reason = "Проверь ПРИЧИНУ бана"
-    if ban_time_text == 0:
+    if ban_time_text == None:
         return_reason = "Проверь ВРЕМЯ бана"
 
     if return_reason is not None:
@@ -44,7 +45,10 @@ async def ban_and_post(
         return
 
     photos = []
-    if ban_time_text[3:] not in ("час", "сутки", "день") or comment.lower() == "ода":
+    if (
+        ban_time_text.split()[1] not in ("час", "сутки", "день")
+        or comment.lower() == "ода"
+    ):
         photos = message.get_photo_attachments()
         if photos == []:
             await message.answer(
@@ -52,17 +56,22 @@ async def ban_and_post(
             )
             return
 
+    json_handler = JSONHandler()
+    moderator_handler = ModeratorHandler()
+
     user_full_name = f'{full_info["first_name"]} {full_info["last_name"]}'
 
-    if not moderator_id.startswith("\\"):
-        moderator_id = await get_data()
-        banner = moderator_id[str(message.from_id)]
-        level = await functions.reformat_moderator_id(banner["rights"])
-        moderator_id = level + str(banner["ID"])
-    else:
+    if moderator_id.startswith("\\"):
         moderator_id = moderator_id[1:]
+        moderator_vk = await moderator_handler.find_moderator_by_id(moderator_id)
+    else:
+        moderator_id = await json_handler.get_data()
+        moderator_vk = str(message.from_id)
+        banner = moderator_id[moderator_vk]
+        level = await reformatter.reformat_moderator_id(banner["rights"])
+        moderator_id = level + str(banner["ID"])
 
-    time_unix = await functions.reformat_time(ban_time)
+    time_unix = await reformatter.reformat_time()
     await ban(
         full_info["id"],
         time_unix,
@@ -83,9 +92,9 @@ async def ban_and_post(
     if photos != []:
         try:
             pics = []
-            async for photo in functions.async_list_generator(photos):
-                url = await functions.get_max_size_photo_URL(photo.sizes)
-                filename = await functions.download_photo(url)
+            async for photo in async_list_generator(photos):
+                photo_handler = PhotoHandler(photo=photo.sizes)
+                filename = await photo_handler.download_photo()
                 data = await upload_image(filename)
                 remove(filename)
                 pics.append(data)
@@ -94,7 +103,7 @@ async def ban_and_post(
                 f"{user_full_name}",
                 f"https://vk.com/id{full_info['id']}",
                 f"{comment} - {ban_time}",
-                f"@id{message.from_id}({moderator_id})\n",
+                f"@id{moderator_vk}({moderator_id})\n",
             )
 
             await post(

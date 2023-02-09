@@ -1,7 +1,8 @@
 from random import randint, choice
 from time import time
+from typing import Any
 
-from aiofiles import open as aiOpen
+from aiofiles import open as async_open
 from aiohttp import ClientSession as aioClientSession
 
 SECONDS = 3600
@@ -14,21 +15,6 @@ formatted_time = {
     "месяц": 24 * 30,
     "год": 24 * 365,
 }
-
-
-async def reformat_time(banTime: str = "час"):
-    if formatted_time.get(banTime) is None:
-        return None
-    ban_until = time() + (formatted_time.get(banTime) * SECONDS)
-    return int(ban_until)
-
-
-async def time_to_text(banTime: str = "час"):
-    if banTime in formatted_time:
-        return f"на {banTime}"
-    elif banTime in (None, "", "перм", "навсегда", "пермач"):
-        return "навсегда"
-    return 0
 
 
 formatted_comments = {
@@ -63,51 +49,82 @@ formatted_comments = {
 }
 
 
-async def reformat_comment(comment: str) -> str:
-    if formatted_comments.get(comment) is not None:
+class Reformatter:
+    def __init__(self, ban_time: str | None):
+        self.ban_time = ban_time
+
+    async def reformat_time(self) -> int | None:
+        if formatted_time.get(self.ban_time) is None:
+            return None
+        return int(time() + (formatted_time.get(self.ban_time) * SECONDS))
+
+    async def reformat_time_to_text(self) -> str | None:
+        if formatted_time.get(self.ban_time) is None:
+            return None
+        if self.ban_time in (None, "", "перм", "навсегда", "пермач"):
+            return "навсегда"
+        return f"на {self.ban_time}"
+
+    async def reformat_comment(self, comment: str) -> str | None:
         return formatted_comments.get(comment)
 
+    async def reformat_moderator_id(self, rights: int = 1) -> str:
+        return "SМВ" if rights == 3 else "МВ"
 
-async def get_max_size_photo_URL(photo: list) -> str:
-    maxSize, maxSizeIndex = 0, 0
-    for index, size in enumerate(photo):
-        if maxSize < size.height:
-            maxSize = size.height
-            maxSizeIndex = index
-    return dict(photo[maxSizeIndex])["url"]
+    async def reformat_moderator_dict(self, moderator_dict: dict) -> str:
+        r = []
+        for moderator in moderator_dict:
+            current_moderator = moderator_dict[moderator]
+            if current_moderator["first_name"] != "TEST":
+                prefix = await self.reformat_moderator_id(current_moderator["rights"])
+                r.append(
+                    f"@id{moderator}"
+                    f"({current_moderator['first_name']} {current_moderator['last_name']}) "
+                    f"({prefix}{current_moderator['ID']})"
+                )
 
-
-async def download_photo(url: str) -> str:
-    async with aioClientSession() as session:
-        async with session.get(url) as resp:
-            file_name = f"{round(time() + randint(0, 1000))}.jpg"
-            if resp.status == 200:
-                async with aiOpen(file_name, mode="wb") as f:
-                    await f.write(await resp.read())
-                    await f.close()
-    return file_name
+        return "\n".join(r)
 
 
-async def reformat_moderator_id(rights: int = 1) -> str:
-    return "SМВ" if rights == 3 else "МВ"
+class PhotoHandler:
+    def __init__(self, photo: list | None):
+        self.photo = photo
+
+    async def get_photo(self) -> str:
+        """get_photo
+
+        Returns:
+            str: returns max size of photo from list of all sizes
+        """
+        maxSize, maxSizeIndex = 0, 0
+        for index, size in enumerate(self.photo):
+            if maxSize < size.height:
+                maxSize = size.height
+                maxSizeIndex = index
+        return self.photo[maxSizeIndex].url
+
+    async def download_photo(self) -> str | None:
+        async with aioClientSession() as session:
+            url = await self.get_photo()
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    file_name = f"{round(time() + randint(0, 1000))}.jpg"
+                    async with async_open(file_name, mode="wb") as f:
+                        await f.write(await resp.read())
+                        await f.close()
+                    return file_name
 
 
-async def reformat_moderator_dict(moderatorDict: dict) -> str:
-    r = []
-    for moderator in moderatorDict:
-        current_moderator = moderatorDict[moderator]
-        if (
-            current_moderator["first_name"] != "TEST"
-            and current_moderator["rights"] >= 1
-        ):
-            level = await reformat_moderator_id(current_moderator["rights"])
-            r.append(
-                f"@id{moderator}"
-                f"({current_moderator['first_name']} {current_moderator['last_name']})"
-                f"({level}{current_moderator['ID']})"
-            )
+class CommentsHandler:
+    def __init__(self, comments: list):
+        self.comments = comments
 
-    return "\n".join(r)
+    async def get_texts_from_comments(self) -> list:
+        return [x.text for x in self.comments.items]
+
+    async def get_random_text_from_comments(self) -> list:
+        texts = await self.get_texts_from_comments()
+        return choice(texts) if texts != [] else []
 
 
 async def async_list_generator(lst: list):
@@ -115,18 +132,8 @@ async def async_list_generator(lst: list):
         yield key
 
 
-async def find_key_by_value(value, key, dictionary: dict):
+async def find_key_by_value(value, key, dictionary: dict) -> Any | None:
     for val in dictionary:
         if dictionary[val][key] == value:
             return val
-    return "notFound"
-
-
-async def get_texts_from_comments(comments: list) -> list:
-    texts = [x.text for x in comments.items]
-    return texts
-
-
-async def get_random_text_from_comments(comments: list) -> str:
-    text = await get_texts_from_comments(comments)
-    return choice(text) if text != [] else None
+    return None
