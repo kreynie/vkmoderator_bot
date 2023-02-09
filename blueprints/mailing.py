@@ -5,18 +5,19 @@ from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
 from helpfuncs.functions import async_list_generator
-from helpfuncs.jsonfunctions import get_data
+from helpfuncs.jsonfunctions import JSONHandler
 
 from .rules import CheckRights, Rights
 
 mailing_labeler = UserLabeler()
 mailing_labeler.vbml_ignore_case = True
 mailing_labeler.custom_rules["access"] = CheckRights
+json_handler = JSONHandler()
 
 
 @mailing_labeler.private_message(access=Rights.supermoderator, text="Рассылка <mail>")
 async def mailing(message: Message, mail: str = None):
-    moderators = await get_data()
+    moderators = await json_handler.get_data()
     failedList = []
     async for moderator in async_list_generator(moderators["moderators"]):
         try:

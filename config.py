@@ -7,6 +7,6 @@ api = API(token=token)
 
 labeler = UserLabeler()
 
-banGroupID: int = -49033185  # -49033185
-banReasonGroupID: int = -112433737  # -112433737
+banGroupID: int = -200352287  # -49033185
+banReasonGroupID: int = -200352287  # -112433737
 testID: int = -200352287

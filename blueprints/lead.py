@@ -3,7 +3,7 @@ from re import search
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
-from helpfuncs.jsonfunctions import find_moderator_by_id
+from helpfuncs.jsonfunctions import JSONHandler
 
 from .rules import CheckRights, Rights
 
@@ -11,9 +11,10 @@ from .rules import CheckRights, Rights
 lead_labeler = UserLabeler()
 lead_labeler.vbml_ignore_case = True
 lead_labeler.custom_rules["access"] = CheckRights
+json_handler = JSONHandler()
 
 
-@lead_labeler.private_message(access=Rights.unit, text="Минус <reason>")
+@lead_labeler.private_message(access=Rights.lead, text="Минус <reason>")
 async def match_incorrect_ban(message: Message, reason: str = ""):
     if message.attachments is None:
         await message.answer("Не найден пересланный пост")
@@ -29,7 +30,9 @@ async def match_incorrect_ban(message: Message, reason: str = ""):
         return
 
     try:
-        moderator_vk_id = await find_moderator_by_id(match_moderator_id.group(0))
+        moderator_vk_id = await json_handler.find_moderator_by_id(
+            match_moderator_id.group(0)
+        )
         sender_info = await message.get_user()
         reason = f"⚠️ {sender_info.first_name} {sender_info.last_name} нашел ошибку в твоем бане.\nКомментарий: {reason}"
         await message.ctx_api.messages.send(int(moderator_vk_id), 0, message=reason)

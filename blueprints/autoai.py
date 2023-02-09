@@ -1,38 +1,21 @@
 from asyncio import sleep as asleep
-from enum import Enum
 from loguru import logger
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
 from .rules import CheckRights, Rights
-from helpfuncs.functions import get_random_text_from_comments
+from helpfuncs.functions import CommentsHandler
 from helpfuncs.vkfunctions import get_last_post, get_comments, send_message
-from helpfuncs.jsonfunctions import save_data, get_data
 
 
-from wordsdetector import BadWordsDetector
-
-
-ai_labeler = UserLabeler()
-ai_labeler.vbml_ignore_case = True
-ai_labeler.custom_rules["access"] = CheckRights
+from wordsdetector import BadWordsDetector, AIState, AIHandler
 
 
 ai = BadWordsDetector()
-
-
-class AIState(Enum):
-    DISABLED_STATE = 0
-    ACTIVE_STATE = 1
-
-
-async def get_ai_state() -> int:
-    ai_state = await get_data("ai.json")
-    return ai_state.get("state", AIState.ACTIVE_STATE.value)
-
-
-async def set_ai_state(state: AIState) -> None:
-    await save_data("ai.json", {"state": state.value})
+ai_handler = AIHandler()
+ai_labeler = UserLabeler()
+ai_labeler.vbml_ignore_case = True
+ai_labeler.custom_rules["access"] = CheckRights
 
 
 @ai_labeler.private_message(
@@ -40,14 +23,8 @@ async def set_ai_state(state: AIState) -> None:
     text="ai_switch",
 )
 async def ai_switch_state(message: Message):
-    current_state = await get_ai_state()
-    next_status = (
-        AIState.ACTIVE_STATE
-        if current_state == AIState.DISABLED_STATE.value
-        else AIState.DISABLED_STATE
-    )
-    await set_ai_state(next_status)
-    await message.answer(f"ai status: {next_status.name}")
+    status = await ai_handler.switch_ai_state()
+    await message.answer(f"ai status: {status.name}")
 
 
 @ai_labeler.private_message(
@@ -62,7 +39,7 @@ async def ai_add_text(message: Message, level: int, text: str):
 async def ai_train():
     last_state = None
     while True:
-        state = await get_ai_state()
+        state = await ai_handler.get_ai_state()
         logger.info("AI | Checking state")
         logger.info(
             "AI | Last state: {}".format(
@@ -76,7 +53,10 @@ async def ai_train():
             try:
                 post_id = await get_last_post()
                 comments = await get_comments(post_id=post_id.id)
-                random_comment = (await get_random_text_from_comments(comments),)
+                comment_handler = CommentsHandler(comments)
+                random_comment = (
+                    await comment_handler.get_random_text_from_comments(),
+                )
                 if random_comment:
                     predictions = tuple(await ai.predict(random_comment))
                     await send_message(
