@@ -57,7 +57,7 @@ async def ban_and_post(
             return
 
     json_handler = JSONHandler()
-    moderator_handler = ModeratorHandler()
+    moderator_handler = await ModeratorHandler.create()
 
     user_full_name = f'{full_info["first_name"]} {full_info["last_name"]}'
 

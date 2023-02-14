@@ -19,12 +19,15 @@ async def mailing(message: Message, mail: str = None):
     json_handler = JSONHandler()
     moderators = await json_handler.get_data()
     failedList = []
+    await message.answer("Принял, обрабатываю...\n" "После рассылки сообщу результаты")
+    await asleep(5)
     async for moderator in async_list_generator(moderators):
         try:
-            await message.ctx_api.messages.send(
-                int(moderator), randint(0, 10000), message=mail
-            )
-            await asleep(5)
+            if int(moderator) != message.from_id:
+                await message.ctx_api.messages.send(
+                    int(moderator), randint(0, 10000), message=mail
+                )
+                await asleep(5)
         except VKAPIError as e:
             failedList.append(f"@id{moderator}\n")
             raise VKAPIError(f"Fail in mailing: {e.error_description}")

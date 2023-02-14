@@ -119,12 +119,12 @@ class CommentsHandler:
     def __init__(self, comments: list):
         self.comments = comments
 
-    async def get_texts_from_comments(self) -> list:
-        return [x.text for x in self.comments.items]
+    async def get_texts_from_comments(self) -> tuple:
+        return (x.text for x in self.comments.items)
 
-    async def get_random_text_from_comments(self) -> list:
+    async def get_random_text_from_comments(self) -> tuple:
         texts = await self.get_texts_from_comments()
-        return choice(texts) if texts != [] else []
+        return choice(texts) if texts != () else ()
 
 
 async def async_list_generator(lst: list):

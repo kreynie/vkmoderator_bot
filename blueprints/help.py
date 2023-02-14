@@ -1,6 +1,6 @@
 from vkbottle.user import Message, UserLabeler
 
-from .rules import Rights, CheckRights, check_permissions
+from .rules import Rights, CheckRights, get_user_permissions
 
 
 help_labeler = UserLabeler()
@@ -21,8 +21,8 @@ async def help_handler(message: Message):
         "▶️ Сокращения - для просмотра всех доступных сокращений",
     ]
     user_id = str(message.from_id)
-    current_permissions = await check_permissions(user_id, 2)
-    if current_permissions:
+    current_permissions = await get_user_permissions(user_id, "rights")
+    if current_permissions >= 2:
         raw_help.extend(
             (
                 "\n\n",
@@ -35,8 +35,7 @@ async def help_handler(message: Message):
             )
         )
 
-    current_permissions = await check_permissions(user_id, 3)
-    if current_permissions:
+    if current_permissions >= 3:
         raw_help.extend(
             (
                 "\n\n",
@@ -45,8 +44,7 @@ async def help_handler(message: Message):
             )
         )
 
-    current_permissions = await check_permissions(user_id, 4)
-    if current_permissions:
+    if current_permissions >= 4:
         raw_help.extend(
             (
                 "\n\n",

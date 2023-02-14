@@ -11,29 +11,30 @@ moderext_labeler = UserLabeler()
 moderext_labeler.vbml_ignore_case = True
 moderext_labeler.custom_rules["access"] = CheckRights
 json_handler = JSONHandler()
-moderator_handler = ModeratorHandler()
 
 
 @moderext_labeler.private_message(
     access=Rights.supermoderator,
-    text="Добмод <vkID> <MBid:int>",
+    text="Добмод <vk_id> <MBid:int>",
 )
-async def addModeratorVK(message: Message, vkID, MBid: int = 1):
-    if vkID is None:
+async def addModeratorVK(message: Message, vk_id, MBid: int = 1):
+    moderator_handler = await ModeratorHandler.create()
+    if vk_id is None:
         await message.answer("Забыл ссылку на страницу!")
         return
 
-    userInfo = await get_user_info(vkID)
-    if userInfo == None:
+    user_info = await get_user_info(vk_id)
+    if user_info == None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
     result = await moderator_handler.add_moderator(
-        str(userInfo["id"]),
+        str(user_info["id"]),
         {
             "ID": MBid,
-            "first_name": userInfo["first_name"],
-            "last_name": userInfo["last_name"],
+            "first_name": user_info["first_name"],
+            "last_name": user_info["last_name"],
             "rights": 1,
+            "groups": [],
         },
     )
     if result == "exists":
@@ -42,17 +43,18 @@ async def addModeratorVK(message: Message, vkID, MBid: int = 1):
         await message.answer("Модератор добавлен в список")
 
 
-@moderext_labeler.private_message(access=Rights.supermoderator, text="Удалмод <vkID>")
-async def deleteModeratorVK(message: Message, vkID):
-    if vkID is None:
+@moderext_labeler.private_message(access=Rights.supermoderator, text="Удалмод <vk_id>")
+async def deleteModeratorVK(message: Message, vk_id):
+    moderator_handler = await ModeratorHandler.create()
+    if vk_id is None:
         await message.answer("Забыл ссылку на страницу!")
         return
 
-    userInfo = await get_user_info(vkID)
-    if userInfo == None:
+    user_info = await get_user_info(vk_id)
+    if user_info == None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
-    result = await moderator_handler.delete_moderator(str(userInfo["id"]))
+    result = await moderator_handler.delete_moderator(str(user_info["id"]))
     if result == "not_exists":
         await message.answer("Модератора нет в списке")
     if result == "success":

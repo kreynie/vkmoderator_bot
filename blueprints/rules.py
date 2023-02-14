@@ -8,14 +8,6 @@ from helpfuncs.jsonfunctions import JSONHandler
 json_handler = JSONHandler()
 
 
-async def check_permissions(user_id: str, level: int = 1) -> bool:
-    rights = await json_handler.get_data()
-    if user_id in rights:
-        rights = rights[user_id]["rights"]
-        return rights >= level
-    return False
-
-
 class Rights(Enum):
     moderator = 1
     supermoderator = 2
@@ -23,13 +15,38 @@ class Rights(Enum):
     admin = 4
 
 
+async def get_user_permissions(user_id: str, flag: str = None) -> int:
+    moderators = await json_handler.get_data()
+    if user_id in moderators and flag:
+        return moderators[user_id].get(flag, 1)
+    return 0
+
+
+async def check_permissions(user_permissions: int, access_level: int) -> bool:
+    if access_level:
+        return user_permissions >= access_level
+
+
 class CheckRights(ABCRule[Message]):
-    def __init__(self, level: int = 1) -> None:
+    def __init__(self, level: int) -> None:
         self.level = level
 
     async def check(self, event: Message) -> bool:
-        rights = await json_handler.get_data()
-        if str(event.from_id) in rights:
-            rights = rights[str(event.from_id)]["rights"]
-            permissions = await check_permissions(str(event.from_id), self.level.value)
-            return permissions
+        rights = await get_user_permissions(str(event.from_id), "rights")
+        permissions = await check_permissions(rights, self.level.value)
+        return permissions
+
+
+class Groups(Enum):
+    moderator = 1
+    legal = 2
+
+
+class CheckGroups(ABCRule[Message]):
+    def __init__(self, group: str) -> None:
+        self.group = group
+
+    async def check(self, event: Message) -> bool:
+        groups = get_user_permissions(str(event.from_id), "groups")
+        rights = rights[str(event.from_id)].get(groups, Groups.moderator.value)
+        return rights >= Groups.legal.value
