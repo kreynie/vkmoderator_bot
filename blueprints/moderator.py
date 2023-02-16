@@ -46,7 +46,7 @@ async def ban_and_post(
 
     photos = []
     if (
-        ban_time_text.split()[1] not in ("час", "сутки", "день")
+        ban_time_text.split()[-1] not in ("час", "сутки", "день")
         or comment.lower() == "ода"
     ):
         photos = message.get_photo_attachments()
@@ -83,11 +83,10 @@ async def ban_and_post(
     if time_unix is None:
         ftime = "насвегда"
     else:
-        temp_time = strftime("%d.%m.%y %H:%M", localtime(time_unix))
-        ftime = f"\nБолеть будет до {temp_time}"
+        ftime = f"\nБолеть будет до {strftime('%d.%m.%y %H:%M', localtime(time_unix))}"
 
     await message.answer(f"{user_full_name} получил банхаммером {ftime}\n")
-    del temp_time, ftime
+    del ftime
 
     if photos != []:
         try:
