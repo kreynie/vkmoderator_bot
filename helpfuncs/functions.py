@@ -59,10 +59,10 @@ class Reformatter:
         return int(time() + (formatted_time.get(self.ban_time) * SECONDS))
 
     async def reformat_time_to_text(self) -> str | None:
-        if formatted_time.get(self.ban_time) is None:
-            return None
         if self.ban_time in (None, "", "перм", "навсегда", "пермач"):
             return "навсегда"
+        if formatted_time.get(self.ban_time) is None:
+            return None
         return f"на {self.ban_time}"
 
     async def reformat_comment(self, comment: str) -> str | None:
