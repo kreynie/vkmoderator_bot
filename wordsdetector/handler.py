@@ -2,23 +2,32 @@ from helpfuncs.jsonfunctions import JSONHandler
 from .states import AIState
 
 
+json_handler = JSONHandler("ai.json")
+
+
 class AIHandler:
     def __init__(self):
-        self.json_handler = JSONHandler("ai.json")
+        self.state = json_handler.get_data().get("state")
 
-    async def get_ai_state(self) -> int:
-        ai_state = await self.json_handler.get_data()
-        return ai_state.get("state")
+    @property
+    async def ai_state(self):
+        return self.state
 
-    async def set_ai_state(self, state: AIState) -> None:
-        await self.json_handler.save_data("ai.json", {"state": state.value})
+    @ai_state.getter
+    async def get(self) -> int:
+        return self.state
 
-    async def switch_ai_state(self) -> AIState:
-        current_state = await self.json_handler.get_ai_state()
+    @ai_state.setter
+    async def set(self, state: AIState) -> None:
+        self.state = state.value
+        json_handler.save_data({"state": self.state})
+
+    async def switch(self) -> AIState:
+        current_state = self.state
         next_status = (
             AIState.ACTIVE_STATE
             if current_state == AIState.DISABLED_STATE.value
             else AIState.DISABLED_STATE
         )
-        await self.set_ai_state(next_status)
-        return next_status
+        self.state = next_status
+        return self.state

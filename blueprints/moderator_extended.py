@@ -63,6 +63,6 @@ async def deleteModeratorVK(message: Message, vk_id):
 
 @moderext_labeler.private_message(access=Rights.supermoderator, text="Модсписок")
 async def checkModeratorsVK(message: Message):
-    data = await json_handler.get_data()
-    reformatted = await Reformatter().reformat_moderator_dict(data)
+    data = json_handler.get_data()
+    reformatted = await Reformatter.reformat_moderator_dict(data)
     await message.answer(f"Модераторы с правами у бота:\n{reformatted}")

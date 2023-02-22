@@ -12,12 +12,12 @@ from .rules import CheckRights, Rights
 mailing_labeler = UserLabeler()
 mailing_labeler.vbml_ignore_case = True
 mailing_labeler.custom_rules["access"] = CheckRights
+json_handler = JSONHandler()
 
 
 @mailing_labeler.private_message(access=Rights.supermoderator, text="Рассылка <mail>")
 async def mailing(message: Message, mail: str = None):
-    json_handler = JSONHandler()
-    moderators = await json_handler.get_data()
+    moderators = json_handler.get_data()
     failedList = []
     await message.answer("Принял, обрабатываю...\n" "После рассылки сообщу результаты")
     await asleep(5)

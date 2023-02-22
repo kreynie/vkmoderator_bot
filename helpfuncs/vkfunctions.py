@@ -30,9 +30,9 @@ async def post(**kwargs):
     await api.wall.post(owner_id=banReasonGroupID, **kwargs)
 
 
-async def get_last_post():
-    post = await api.wall.get(owner_id=banGroupID, count=2)
-    return post.items[1]
+async def get_posts(count: int = 1):
+    posts = await api.wall.get(owner_id=banGroupID, count=count)
+    return posts.items
 
 
 async def get_comments(**kwargs):

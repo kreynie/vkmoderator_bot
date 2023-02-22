@@ -16,7 +16,7 @@ class Rights(Enum):
 
 
 async def get_user_permissions(user_id: str, flag: str = None) -> int:
-    moderators = await json_handler.get_data()
+    moderators = json_handler.get_data()
     if user_id in moderators and flag:
         return moderators[user_id].get(flag, 1)
     return 0

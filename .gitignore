@@ -1,7 +1,8 @@
 # My stuff
 *.json
 *.log
-config.py
+test.py
+wordsdetector/dataset/words.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -132,4 +133,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-config.py

@@ -14,6 +14,7 @@ from .rules import CheckRights, Rights
 moderator_labeler = UserLabeler()
 moderator_labeler.vbml_ignore_case = True
 moderator_labeler.custom_rules["access"] = CheckRights
+json_handler = JSONHandler()
 
 
 @moderator_labeler.private_message(
@@ -37,7 +38,7 @@ async def ban_and_post(
         return_reason = "Ошибка получения информации из ссылки"
     if full_comment is None:
         return_reason = "Проверь ПРИЧИНУ бана"
-    if ban_time_text == None:
+    if ban_time_text is None:
         return_reason = "Проверь ВРЕМЯ бана"
 
     if return_reason is not None:
@@ -56,7 +57,6 @@ async def ban_and_post(
             )
             return
 
-    json_handler = JSONHandler()
     moderator_handler = await ModeratorHandler.create()
 
     user_full_name = f'{full_info["first_name"]} {full_info["last_name"]}'
@@ -65,7 +65,7 @@ async def ban_and_post(
         moderator_id = moderator_id[1:]
         moderator_vk = await moderator_handler.find_moderator_by_id(moderator_id)
     else:
-        moderator_id = await json_handler.get_data()
+        moderator_id = json_handler.get_data()
         moderator_vk = str(message.from_id)
         banner = moderator_id[moderator_vk]
         level = await reformatter.reformat_moderator_id(banner["rights"])

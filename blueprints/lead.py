@@ -30,9 +30,7 @@ async def match_incorrect_ban(message: Message, reason: str = ""):
         return
 
     try:
-        moderator_vk_id = await json_handler.find_moderator_by_id(
-            match_moderator_id.group(0)
-        )
+        moderator_vk_id = json_handler.find_moderator_by_id(match_moderator_id.group(0))
         sender_info = await message.get_user()
         reason = f"⚠️ {sender_info.first_name} {sender_info.last_name} нашел ошибку в твоем бане.\nКомментарий: {reason}"
         await message.ctx_api.messages.send(int(moderator_vk_id), 0, message=reason)

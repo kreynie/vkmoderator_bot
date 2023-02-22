@@ -2,25 +2,23 @@ import json
 from re import findall
 from typing import Union, Any
 
-from .functions import find_key_by_value
 
-
-class JSONHandler(object):
-    def __init__(self, filename: str = "moderators.json"):
+class JSONHandler:
+    def __init__(self, filename: str = "moderators.json") -> None:
         self.filename = filename
 
-    async def get_data(self) -> dict:
+    def get_data(self) -> dict:
         with open(self.filename, "r", encoding="utf-8") as file:
             data = json.load(file)
         return data
 
-    async def save_data(self, dictionary: dict = {}) -> None:
+    def save_data(self, dictionary: dict = {}) -> None:
         with open(self.filename, "w+", encoding="utf-8") as file:
             json.dump(dictionary, file, ensure_ascii=False, indent=4)
 
-    async def refresh_and_sort(self, dictionary: dict) -> str:
+    def refresh_and_sort(self, dictionary: dict) -> str:
         data = dict(sorted(dictionary.items(), key=lambda x: x[1]["ID"]))
-        await self.save_data(data)
+        self.save_data(data)
         return "success"
 
 
@@ -29,7 +27,7 @@ class ModeratorHandler(JSONHandler):
     async def create(cls):
         self = ModeratorHandler()
         self.filename = "moderators.json"
-        self.moderator_list = await self.get_data()
+        self.moderator_list = self.get_data()
         return self
 
     async def add_moderator(self, moderator_id: str, moderator_data: dict) -> str:
@@ -47,7 +45,7 @@ class ModeratorHandler(JSONHandler):
             return "exists"
         self.moderator_list[moderator_id] = moderator_data
 
-        await self.refresh_and_sort(self.moderator_list)
+        self.refresh_and_sort(self.moderator_list)
         return "success"
 
     async def delete_moderator(self, moderator_id: str) -> str:
@@ -64,14 +62,14 @@ class ModeratorHandler(JSONHandler):
             return "not_exists"
         del self.moderator_list[str(moderator_id)]
 
-        await self.refresh_and_sort(self.moderator_list)
+        self.refresh_and_sort(self.moderator_list)
         return "success"
 
     async def find_moderator_by_id(self, moderator_id: str):
         result = await find_key_by_value(
             value=int(findall("\d+", moderator_id)[0]),
             key="ID",
-            dictionary=await self.moderator_list,
+            dictionary=self.moderator_list,
         )
         return result
 
@@ -97,5 +95,12 @@ class ModeratorHandler(JSONHandler):
 
         self.moderator_list[moderator_id][key] = value
 
-        await self.refresh_and_sort(self.moderator_list)
+        self.refresh_and_sort(self.moderator_list)
         return "success"
+
+
+async def find_key_by_value(value, key, dictionary: dict) -> Any | None:
+    for val in dictionary:
+        if dictionary[val][key] == value:
+            return val
+    return None

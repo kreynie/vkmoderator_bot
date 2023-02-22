@@ -1,7 +1,7 @@
 from loguru import logger
 from vkbottle.user import User
 
-from blueprints.autoai import ai_train
+from blueprints.autoai import ai_activate
 from blueprints import labelers
 from config import api, labeler
 
@@ -19,5 +19,5 @@ bot = User(api=api, labeler=labeler)
 for level in labelers:
     labeler.load(level)
 
-bot.loop_wrapper.add_task(ai_train)
+bot.loop_wrapper.add_task(ai_activate)
 bot.run_forever()

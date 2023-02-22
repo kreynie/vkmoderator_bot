@@ -1,3 +1,4 @@
+import asyncio
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
@@ -6,7 +7,11 @@ import joblib
 
 
 class BadWordsDetector:
-    def __init__(self, model_file="wordsdetector/trained/model.joblib"):
+    def __init__(
+        self,
+        model_file: str = "wordsdetector/trained/model.joblib",
+        csv_file: str = "wordsdetector/dataset/words.csv",
+    ):
         if model_file:
             self.model = joblib.load(model_file)
         else:
@@ -17,19 +22,21 @@ class BadWordsDetector:
                     ("classifier", LogisticRegression()),
                 ]
             )
+        self.csv_file = csv_file
+        self.model_file = model_file
 
-    async def train(self, csv_file):
-        data = pd.read_csv(csv_file)
+    async def train(self):
+        data = pd.read_csv(self.csv_file)
         X = data["comment"].values
         y = data["toxic"].values
         self.model.fit(X, y)
 
-    async def predict(self, comments):
-        return self.model.predict(comments)
+    async def predict(self, comment):
+        return self.model.predict((comment,))
 
-    async def save(self, file_name):
-        joblib.dump(self.model, file_name)
+    async def save(self):
+        joblib.dump(self.model, self.model_file)
 
-    async def add_text_data(self, comment, toxic, csv_file="wordsdetector/dataset/words.csv"):
-        with open(csv_file, "a", encoding="utf-8") as f:
+    async def add_text_data(self, comment, toxic):
+        with open(self.csv_file, "a", encoding="utf-8") as f:
             f.write('\n"{}\n",{}'.format(comment, float(toxic)))
