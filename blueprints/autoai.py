@@ -20,6 +20,27 @@ ai_labeler.custom_rules["access"] = CheckRights
 
 
 @ai_labeler.private_message(
+    access=Rights.supermoderator,
+    text="ai_add <level> <text>",
+)
+async def ai_add_text(message: Message, level: int, text: str):
+    await ai.add_text_data(text, float(level))
+    await message.answer("ok")
+
+
+@ai_labeler.private_message(
+    access=Rights.supermoderator,
+    text="ai_test <text>",
+)
+async def ai_add_text(message: Message, text: str):
+    predictions = await ai.predict(text)
+    await message.answer(
+        "AI predictions:\n"
+        + ("No violations" if predictions == 0 else "Violated comment")
+    )
+
+
+@ai_labeler.private_message(
     access=Rights.admin,
     text="ai_switch",
 )
@@ -28,13 +49,15 @@ async def ai_switch_state(message: Message):
     await message.answer(f"ai state: {state.name}")
 
 
-@ai_labeler.private_message(
-    access=Rights.supermoderator,
-    text="ai_add <level> <text>",
-)
-async def ai_add_text(message: Message, level: int, text: str):
-    await ai.add_text_data(text, float(level))
-    await message.answer("ok")
+@ai_labeler.private_message(access=Rights.admin, text="ai_train")
+async def ai_train(message: Message):
+    await message.answer("Пробую...")
+    try:
+        await ai.train()
+    except Exception as e:
+        await message.answer("Произошла ошибка при попытке обучить нейросеть\n" + e)
+    else:
+        await message.answer("Нейросеть переобучилась")
 
 
 async def ai_activate():
@@ -49,7 +72,6 @@ async def ai_activate():
         )
         logger.info(f"AI | Current state: {AIState(state).name}")
         if state.value:
-            await VKHandler.send_message(651285022, 0, message="AI started")
             try:
                 start_time = time()
                 posts = await VKHandler.get_posts(5)
@@ -62,7 +84,7 @@ async def ai_activate():
                         comments_raw
                     ):
                         predictions = tuple(await ai.predict(comment["text"]))
-                        if predictions[0] > 0:
+                        if predictions > 0:
                             detected_comments.append(
                                 {
                                     "post_id": post.id,
@@ -78,14 +100,15 @@ async def ai_activate():
                 ]
                 end_time = time()
                 elapsed_time = end_time - start_time
+                counted_time = f"Elapsed time: {elapsed_time:.2f} seconds\n"
                 await VKHandler.send_message(
                     651285022,
                     0,
-                    message=f"Elapsed time: {elapsed_time:.2f} seconds\n"
+                    message=counted_time
                     + f"AI found {len(results)} violent comments:\n"
                     + "\n".join(results)
                     if detected_comments != []
-                    else "AI does not found violations",
+                    else f"{counted_time}AI does not found violations",
                 )
             except VKAPIError as e:
                 await sleep(5)

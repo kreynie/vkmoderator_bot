@@ -3,6 +3,7 @@
 *.log
 test.py
 wordsdetector/dataset/words.csv
+wordsdetector/trained/model.joblib
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
