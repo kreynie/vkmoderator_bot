@@ -24,8 +24,8 @@ ai_labeler.custom_rules["access"] = CheckRights
     text="ai_switch",
 )
 async def ai_switch_state(message: Message):
-    status = await ai_handler.switch()
-    await message.answer(f"ai status: {status.name}")
+    state = ai_handler.switch()
+    await message.answer(f"ai state: {state.name}")
 
 
 @ai_labeler.private_message(
@@ -48,9 +48,8 @@ async def ai_activate():
             )
         )
         logger.info(f"AI | Current state: {AIState(state).name}")
-        if state:
-            if state != last_state:
-                await VKHandler.send_message(651285022, 0, message="AI started")
+        if state.value:
+            await VKHandler.send_message(651285022, 0, message="AI started")
             try:
                 start_time = time()
                 posts = await VKHandler.get_posts(5)
@@ -66,15 +65,15 @@ async def ai_activate():
                         if predictions[0] > 0:
                             detected_comments.append(
                                 {
-                                    # "post_id": post.id,
-                                    # "id": comment["id"],
+                                    "post_id": post.id,
+                                    "id": comment["id"],
                                     # "from_id": comment["from_id"],
                                     "text": comment["text"],
                                 }
                             )
                 results = [
-                    f"{comment['text']}\n"
-                    + f"https://vk.com/wall-49033185_{comment['post_id']}?reply={comment['id']}"
+                    f"▶️{comment['text']}\n"
+                    + f"https://vk.com/wall-49033185_{comment['post_id']}?reply={comment['id']}\n"
                     for comment in detected_comments
                 ]
                 end_time = time()
