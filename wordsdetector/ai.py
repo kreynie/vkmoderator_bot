@@ -1,4 +1,3 @@
-import asyncio
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
@@ -26,7 +25,7 @@ class BadWordsDetector:
         self.model_file = model_file
 
     async def train(self):
-        data = pd.read_csv(self.csv_file)
+        data = pd.read_csv(self.csv_file, quotechar="`", engine="python")
         X = data["comment"].values
         y = data["toxic"].values
         self.model.fit(X, y)
@@ -39,4 +38,4 @@ class BadWordsDetector:
 
     async def add_text_data(self, comment, toxic):
         with open(self.csv_file, "a", encoding="utf-8") as f:
-            f.write('\n"{}\n",{}'.format(comment, float(toxic)))
+            f.write("`{}`,{}\n".format(comment, float(toxic)))

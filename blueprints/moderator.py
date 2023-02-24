@@ -5,9 +5,9 @@ from time import localtime, strftime
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
-from helpfuncs.functions import Reformatter, PhotoHandler, async_list_generator
+from helpfuncs.functions import ReformatHandler, PhotoHandler, async_list_generator
 from helpfuncs.jsonfunctions import JSONHandler, ModeratorHandler
-from helpfuncs.vkfunctions import ban, get_user_info, post, upload_image
+from helpfuncs.vkfunctions import VKHandler
 
 from .rules import CheckRights, Rights
 
@@ -29,8 +29,13 @@ async def ban_and_post(
 ):
     return_reason = None
 
-    full_info = await get_user_info(user_id)
-    reformatter = Reformatter(ban_time)
+    full_info = await VKHandler.get_user_info(user_id)
+    already_banned = await VKHandler.check_if_banned(full_info["id"])
+    if already_banned:
+        await message.answer("Пользователь уже забанен в группе")
+        return
+
+    reformatter = ReformatHandler(ban_time)
     full_comment = await reformatter.reformat_comment(comment.lower())
     ban_time_text = await reformatter.reformat_time_to_text()
 
@@ -72,13 +77,17 @@ async def ban_and_post(
         moderator_id = level + str(banner["ID"])
 
     time_unix = await reformatter.reformat_time()
-    await ban(
-        full_info["id"],
-        time_unix,
-        0,
-        f"{full_comment} | {moderator_id}",
-        True,
-    )
+    try:
+        await VKHandler.ban(
+            owner_id=full_info["id"],
+            end_date=time_unix,
+            reason=0,
+            comment=f"{full_comment} | {moderator_id}",
+            comment_visible=True,
+        )
+    except:
+        await message.answer("Ошибка при попытке бана")
+        return
 
     if time_unix is None:
         ftime = "насвегда"
@@ -94,7 +103,7 @@ async def ban_and_post(
             async for photo in async_list_generator(photos):
                 photo_handler = PhotoHandler(photo=photo.sizes)
                 filename = await photo_handler.download_photo()
-                data = await upload_image(filename)
+                data = await VKHandler.upload_image(filename)
                 remove(filename)
                 pics.append(data)
 
@@ -105,7 +114,7 @@ async def ban_and_post(
                 f"@id{moderator_vk}({moderator_id})\n",
             )
 
-            await post(
+            await VKHandler.post(
                 from_group=True,
                 message="\n".join(reply),
                 attachments=pics,

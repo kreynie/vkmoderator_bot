@@ -9,8 +9,6 @@ api = API(token=token)
 labeler = UserLabeler()
 
 if DEBUG:
-    banGroupID = -200352287
-    banReasonGroupID = -200352287
+    ban_group_id, ban_reason_group_id = -200352287, -200352287
 else:
-    banGroupID = -49033185
-    banReasonGroupID = -112433737
+    ban_group_id, ban_reason_group_id = -49033185, -112433737

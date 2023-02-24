@@ -1,11 +1,12 @@
-from asyncio import sleep as asleep
+from asyncio import sleep
 from loguru import logger
+from time import time
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
 from .rules import CheckRights, Rights
 from helpfuncs.functions import CommentsHandler, async_list_generator
-from helpfuncs.vkfunctions import get_posts, get_comments, send_message
+from helpfuncs.vkfunctions import VKHandler
 
 
 from wordsdetector import BadWordsDetector, AIState, AIHandler
@@ -43,37 +44,54 @@ async def ai_activate():
         logger.info("AI | Checking state")
         logger.info(
             "AI | Last state: {}".format(
-                "no state" if last_state is None else last_state
+                "no state" if last_state is None else AIState(last_state).name
             )
         )
         logger.info(f"AI | Current state: {AIState(state).name}")
         if state:
             if state != last_state:
-                await send_message(651285022, 0, message="AI started")
+                await VKHandler.send_message(651285022, 0, message="AI started")
             try:
-                posts = await get_posts(5)
-                comments = []
+                start_time = time()
+                posts = await VKHandler.get_posts(5)
                 detected_comments = []
                 async for post in async_list_generator(posts):
-                    comments_raw = await get_comments(post_id=post.id)
-                    comments += await CommentsHandler.get_texts_from_comments(
-                        comments_raw
+                    comments_raw = await VKHandler.get_comments(
+                        post_id=post.id, count=100
                     )
-                    for comment in comments:
-                        predictions = tuple(await ai.predict(comment))
+                    async for comment in CommentsHandler.get_texts_from_comments(
+                        comments_raw
+                    ):
+                        predictions = tuple(await ai.predict(comment["text"]))
                         if predictions[0] > 0:
-                            detected_comments.append(comment)
-                print(detected_comments)
-                await send_message(
+                            detected_comments.append(
+                                {
+                                    # "post_id": post.id,
+                                    # "id": comment["id"],
+                                    # "from_id": comment["from_id"],
+                                    "text": comment["text"],
+                                }
+                            )
+                results = [
+                    f"{comment['text']}\n"
+                    + f"https://vk.com/wall-49033185_{comment['post_id']}?reply={comment['id']}"
+                    for comment in detected_comments
+                ]
+                end_time = time()
+                elapsed_time = end_time - start_time
+                await VKHandler.send_message(
                     651285022,
                     0,
-                    message="AI results in comments:\n"
-                    + "\n".join([comment for comment in detected_comments]),
+                    message=f"Elapsed time: {elapsed_time:.2f} seconds\n"
+                    + f"AI found {len(results)} violent comments:\n"
+                    + "\n".join(results)
+                    if detected_comments != []
+                    else "AI does not found violations",
                 )
             except VKAPIError as e:
-                await asleep(5)
-                await send_message(
+                await sleep(5)
+                await VKHandler.send_message(
                     651285022, 0, message=f"Failed\n{e.code}: {e.description}"
                 )
         last_state = state
-        await asleep(600)
+        await sleep(900)

@@ -1,7 +1,7 @@
 from vkbottle.user import Message, UserLabeler
 
 from helpfuncs.jsonfunctions import JSONHandler
-from helpfuncs.vkfunctions import get_user_info
+from helpfuncs.vkfunctions import VKHandler
 
 from .rules import CheckRights, Rights
 
@@ -17,7 +17,7 @@ async def change_rights(message: Message, user_id: str = None, rights: int = 1):
         await message.answer("Забыл ссылку на страницу!")
         return
 
-    user_info = await get_user_info(user_id)
+    user_info = await VKHandler.get_user_info(user_id)
     if user_info == None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return

@@ -11,10 +11,10 @@ from .jsonfunctions import JSONHandler
 json_handler = JSONHandler("formatted.json")
 data = json_handler.get_data()
 formatted_time = data["time"]
-formatted_comments = data["comments"]
+formatted_abbreviations = data["abbreviations"]
 
 
-class Reformatter:
+class ReformatHandler:
     def __init__(self, ban_time: str | None) -> None:
         self.ban_time = ban_time
 
@@ -35,10 +35,10 @@ class Reformatter:
         result = []
         if "+" in comment:
             for value in comment.split("+"):
-                result.append(formatted_comments.get(value, ""))
+                result.append(formatted_abbreviations.get(value, ""))
             result = ", ".join(result)
         else:
-            result = formatted_comments.get(comment, "")
+            result = formatted_abbreviations.get(comment, "")
         return result.capitalize() if result != "" else None
 
     @staticmethod
@@ -51,7 +51,7 @@ class Reformatter:
         for moderator in moderator_dict:
             current_moderator = moderator_dict[moderator]
             if current_moderator["first_name"] != "TEST":
-                prefix = await Reformatter.reformat_moderator_id(
+                prefix = await ReformatHandler.reformat_moderator_id(
                     current_moderator["rights"]
                 )
                 r.append(
@@ -94,8 +94,10 @@ class PhotoHandler:
 
 class CommentsHandler:
     @staticmethod
-    async def get_texts_from_comments(comments) -> tuple:
-        return (x.text for x in comments.items)
+    async def get_texts_from_comments(comments) -> dict:
+        for x in comments.items:
+            if x.from_id != 0:
+                yield {"id": x.id, "from_id": x.from_id, "text": x.text}
 
     @staticmethod
     async def get_random_text_from_comments(comments) -> tuple:

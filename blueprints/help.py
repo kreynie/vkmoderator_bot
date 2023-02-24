@@ -1,5 +1,6 @@
 from vkbottle.user import Message, UserLabeler
 
+from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler
 from .rules import Rights, CheckRights, get_user_permissions
 
 
@@ -34,9 +35,12 @@ async def help_handler(message: Message):
                 "--> Пример: Добмод vk.com/steel_wg 69",
                 "▶️ Удалмод <vkID>, где <vkID> - ссылка на страницу",
                 "▶️ Модсписок",
-                "▶️ ai_add <level> <text> - добавить в базу бота выражение, где\n"
-                + "<level> - 0 или 1, 1 - нарушение\n"
-                + "<text> - СЫРОЙ текст из комментария, т.е. такой, какой есть (без упоминания других пользователей)",
+                "▶️ Добсокр <abbreviation> <full_text>",
+                "• <abbreviation> - сокращение",
+                "• <full_text> - полный текст"
+                "▶️ ai_add <level> <text> - добавить в базу бота выражение, где",
+                "• <level> - 0 или 1, 1 - нарушение",
+                "• <text> - СЫРОЙ текст из комментария, т.е. такой, какой есть (без упоминания других пользователей)",
             )
         )
 
@@ -64,7 +68,10 @@ async def help_handler(message: Message):
 
 @help_labeler.private_message(access=Rights.moderator, text="Сокращения")
 async def get_abbreviations(message: Message):
+    abbreviations_dict = JSONHandler("formatted.json").get_data().get("abbreviations")
+    formatted_abbreviations = await DictionaryFuncs.dict_to_string(
+        dictionary=abbreviations_dict, prefix="-", postfix=">", indent=1
+    )
     await message.answer(
-        message="Доступные сокращения",
-        attachment="photo776084434_457239060",
+        message="Список доступных сокращений:\n" + formatted_abbreviations,
     )
