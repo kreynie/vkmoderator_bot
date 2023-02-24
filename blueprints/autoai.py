@@ -83,7 +83,7 @@ async def ai_activate():
                     async for comment in CommentsHandler.get_texts_from_comments(
                         comments_raw
                     ):
-                        predictions = tuple(await ai.predict(comment["text"]))
+                        predictions = await ai.predict(comment["text"])
                         if predictions > 0:
                             detected_comments.append(
                                 {
