@@ -23,9 +23,7 @@ class AIHandler:
     def switch(self) -> AIState:
         current_state = self.state
         next_status = (
-            AIState.ACTIVE_STATE
-            if current_state == AIState.DISABLED_STATE
-            else AIState.DISABLED_STATE
+            AIState.ACTIVE if current_state == AIState.DISABLED else AIState.DISABLED
         )
         self.state = next_status
         return self.state
