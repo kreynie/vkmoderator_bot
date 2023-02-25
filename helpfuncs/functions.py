@@ -99,11 +99,6 @@ class CommentsHandler:
             if x.from_id != 0:
                 yield {"id": x.id, "from_id": x.from_id, "text": x.text}
 
-    @staticmethod
-    async def get_random_text_from_comments(comments) -> tuple:
-        texts = await CommentsHandler.get_texts_from_comments(comments)
-        return choice(texts) if texts != () else ()
-
 
 async def async_list_generator(lst: list):
     for key in lst:

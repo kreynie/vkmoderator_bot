@@ -101,15 +101,14 @@ async def ai_activate():
                 end_time = time()
                 elapsed_time = end_time - start_time
                 counted_time = f"Elapsed time: {elapsed_time:.2f} seconds\n"
-                await VKHandler.send_message(
-                    651285022,
-                    0,
-                    message=counted_time
-                    + f"AI found {len(results)} violent comments:\n"
-                    + "\n".join(results)
-                    if detected_comments != []
-                    else f"{counted_time}AI does not found violations",
-                )
+                if detected_comments != []:
+                    await VKHandler.send_message(
+                        651285022,
+                        0,
+                        message=counted_time
+                        + f"AI found {len(results)} violent comments:\n"
+                        + "\n".join(results),
+                    )
             except VKAPIError as e:
                 await sleep(5)
                 await VKHandler.send_message(
