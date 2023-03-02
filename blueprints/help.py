@@ -1,6 +1,5 @@
-from vkbottle.user import Message, UserLabeler
-
 from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler
+from vkbottle.user import Message, UserLabeler
 
 from .rules import CheckPermissions, Groups, PermissionChecker, Rights
 
@@ -96,20 +95,24 @@ async def legal_abbreviations(message: Message) -> None:
 async def legal_helper(message: Message) -> None:
     raw_help = [
         "Использование бота (команды без учета регистра букв):",
-        "▶️ ЛТ <public> <user> <reason> <post>",
+        "▶️ ЛТ <public> <user> <reason> <post> <game>",
         "▶️ ЛТСокр - для просмотра всех доступных сокращений Legal Team",
     ]
     current_permissions = await PermissionChecker.get_user_permissions(
-        str(message.from_id), Groups.MODERATOR
+        str(message.from_id), Groups.LEGAL
     )
     if current_permissions >= 2:
         raw_help.extend(
             (
                 "\n\n",
                 "Закрытые LT команды: ",
-                "▶️ ДобЛТ <user_id>",
+                "▶️ ДобЛТ <user_id> <MB_id>, где",
+                "<MB_id> ОПЦИОНАЛЬНАЯ настройка, т.е. этот параметр указывать необязательно, \
+                если у модератора уже есть базовые права",
                 "--> Пример: Добмод vk.com/steel_wg 69",
                 "▶️ УдалЛТ <vkID>, где <vkID> - ссылка на страницу",
                 "▶️ ЛТсписок",
             )
         )
+
+    await message.answer("\n".join(raw_help))

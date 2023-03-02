@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import List
 
 from vkbottle.dispatch.rules import ABCRule
@@ -6,20 +5,10 @@ from vkbottle.user import Message
 
 from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler
 
+from .enums import Groups, Rights
+
 json_handler = JSONHandler()
 dict_handler = DictionaryFuncs()
-
-
-class Rights(Enum):
-    LOW = 1
-    MIDDLE = 2
-    LEAD = 3
-    ADMIN = 4
-
-
-class Groups(Enum):
-    MODERATOR = "groups.moderator"
-    LEGAL = "groups.legal"
 
 
 class PermissionChecker:
@@ -34,7 +23,7 @@ class PermissionChecker:
 
 
 class CheckPermissions(ABCRule[Message]):
-    def __init__(self, data: List[Groups, Rights]) -> None:
+    def __init__(self, data: List[tuple[Groups, Rights]]) -> None:
         self.permission_type, self.level = data
 
     async def check(self, event: Message) -> bool:

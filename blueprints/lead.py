@@ -5,8 +5,7 @@ from vkbottle.user import Message, UserLabeler
 
 from helpfuncs.jsonfunctions import JSONHandler
 
-from .rules import Rights, Groups, CheckPermissions
-
+from .rules import CheckPermissions, Groups, Rights
 
 lead_labeler = UserLabeler()
 lead_labeler.vbml_ignore_case = True

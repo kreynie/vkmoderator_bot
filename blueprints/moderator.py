@@ -72,7 +72,9 @@ async def ban_and_post(
         moderator_id = json_handler.get_data()
         moderator_vk = str(message.from_id)
         banner = moderator_id[moderator_vk]
-        level = await reformatter.reformat_moderator_id(banner["rights"])
+        level = await reformatter.reformat_moderator_id(
+            banner.get("groups").get("moderator")
+        )
         moderator_id = level + str(banner["ID"])
 
     time_unix = await reformatter.reformat_time()
@@ -85,7 +87,7 @@ async def ban_and_post(
             comment_visible=True,
         )
     except:
-        await message.answer("Ошибка при попытке бана")
+        await message.answer(f"Ошибка при попытке бана")
         return
 
     if time_unix is None:

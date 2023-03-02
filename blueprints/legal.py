@@ -16,4 +16,4 @@ dict_handler = DictionaryFuncs()
     text="ЛТ <public> <user> <reason> <post> <game>",
 )
 async def legal_helper(message: Message) -> None:
-    pass
+    await message.answer("Пока ничего нет")

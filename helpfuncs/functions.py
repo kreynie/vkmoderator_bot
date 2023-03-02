@@ -81,7 +81,7 @@ class PhotoHandler:
                 maxSizeIndex = index
         return self.photo[maxSizeIndex].url
 
-    async def get_photo(self) -> str:
+    async def get_photo(self) -> bytes:
         async with ClientSession() as session:
             url = await self.get_photo_max_size()
             async with session.get(url) as resp:

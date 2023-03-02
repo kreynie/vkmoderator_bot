@@ -16,12 +16,12 @@ formatted_json = JSONHandler("formatted.json")
 
 @moderext_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
-    text="Добмод <vk_id> <MBid:int>",
+    text="Добмод <vk_id> <MB_id:int>",
 )
 async def add_moderator(
     message: Message,
     vk_id: str,
-    MB_id: int = 1,
+    MB_id: int,
 ) -> None:
     moderator_handler = await ModeratorHandler.create()
     if not vk_id:
@@ -71,7 +71,7 @@ async def delete_moderator(message: Message, vk_id) -> None:
 @moderext_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE], text="Модсписок"
 )
-async def check_moderators(message: Message) -> None:
+async def list_moderators(message: Message) -> None:
     data = moderator_json.get_data()
     reformatted = await ReformatHandler.reformat_moderator_dict(data, "moderator")
     await message.answer(f"Модераторы с правами у бота:\n{reformatted}")
@@ -86,8 +86,8 @@ async def add_abbreviation(message: Message, abbreviation: str, full_text: str) 
         return
     formatted_dict = formatted_json.get_data()
     result, updated_abbreviations = await DictionaryFuncs.add_value(
-        formatted_dict,
-        f"abbreviations{DictionaryFuncs.separator}{abbreviation}",
+        formatted_dict["abbreviations"],
+        abbreviation,
         full_text.lower(),
     )
     match result:
@@ -98,9 +98,6 @@ async def add_abbreviation(message: Message, abbreviation: str, full_text: str) 
             return
         case "exists":
             await message.answer(f"Сокращение «{abbreviation}» уже есть в списке")
-            return
-        case _:
-            await message.answer(f"Что-то пошло не так. Код ошибки: {result}")
 
 
 @moderext_labeler.private_message(

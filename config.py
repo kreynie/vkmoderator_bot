@@ -1,4 +1,5 @@
 from os import getenv
+
 from vkbottle import API
 from vkbottle.user import UserLabeler
 
