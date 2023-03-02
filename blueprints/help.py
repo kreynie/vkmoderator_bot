@@ -96,11 +96,11 @@ async def legal_abbreviations(message: Message) -> None:
 async def legal_helper(message: Message) -> None:
     raw_help = [
         "Использование бота (команды без учета регистра букв):",
-        "▶️ ЛТ <public> <user> <reason> <post>",
+        "▶️ ЛТ <public> <user> <reason> <post> <game>",
         "▶️ ЛТСокр - для просмотра всех доступных сокращений Legal Team",
     ]
     current_permissions = await PermissionChecker.get_user_permissions(
-        str(message.from_id), Groups.MODERATOR
+        str(message.from_id), Groups.LEGAL
     )
     if current_permissions >= 2:
         raw_help.extend(
@@ -113,3 +113,5 @@ async def legal_helper(message: Message) -> None:
                 "▶️ ЛТсписок",
             )
         )
+
+    await message.answer("\n".join(raw_help))

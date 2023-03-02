@@ -1,9 +1,9 @@
 from vkbottle.user import Message, UserLabeler
 
-from helpfuncs.jsonfunctions import JSONHandler, DictionaryFuncs
+from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler
 from helpfuncs.vkfunctions import VKHandler
 
-from .rules import Rights, Groups, CheckPermissions
+from .rules import CheckPermissions, Groups, Rights
 
 ltl_labeler = UserLabeler()
 ltl_labeler.vbml_ignore_case = True

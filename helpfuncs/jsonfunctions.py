@@ -1,9 +1,9 @@
 import json
+from pprint import pprint
 from re import findall
-from typing import TYPE_CHECKING, Any, Union
+from typing import Any, Union
 
-if TYPE_CHECKING:
-    from blueprints.rules import Groups
+from blueprints.enums import Groups
 
 
 class JSONHandler:
@@ -49,9 +49,12 @@ class ModeratorHandler(JSONHandler):
         if moderator_id in self.moderator_list:
             return "exists"
         self.moderator_list[moderator_id] = moderator_data
-        self.moderator_list = DictionaryFuncs.add_value(
-            self.moderator_list, moderator_id, {f"{group.name.lower()}": 1}
+        _, self.moderator_list = await DictionaryFuncs.add_value(
+            self.moderator_list,
+            f"{moderator_id}{DictionaryFuncs.separator}groups",
+            {f"{group.name.lower()}": 1},
         )
+        # self.moderator_list[moderator_id]["groups"] = {f"{group.name.lower()}": 1}
 
         self.refresh_and_sort(self.moderator_list)
         return "success"
@@ -163,8 +166,8 @@ class DictionaryFuncs:
             >>> add_value(my_dict, f"{first_key}{separator}{second_key}", value)
 
         Returns:
-            ``exists``: the key already exists
-            ``success``: succeeded
+            ``exists``: the key already exists, old dictionary
+            ``success``: succeeded, new dictionary
         """
         path_parts = target_key.split(cls.separator)
         target_path = await cls.find_key_path(dictionary, path_parts[-1])
