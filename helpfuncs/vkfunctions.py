@@ -1,4 +1,5 @@
 from re import match
+from typing import Dict, List, Literal, Optional
 
 from vkbottle import VKAPIError
 from vkbottle.tools import PhotoWallUploader
@@ -8,17 +9,24 @@ from config import api, ban_group_id, ban_reason_group_id
 
 class VKHandler:
     @staticmethod
-    async def upload_image(photo):
+    async def upload_image(photo: str | bytes) -> str | List[dict]:
         return await PhotoWallUploader(api).upload(photo)
 
     @staticmethod
-    async def get_user_info(user_link: str) -> dict:
-        matched = match(r".*vk.com/(.*)", user_link)
-        if matched is None:
+    async def get_user_info(
+        username: str,
+        name_case: Optional[Literal["nom", "gen", "dat", "acc", "ins", "abl"]] = None,
+    ) -> Dict[str, str | int] | None:
+        matched_mention = None
+        matched_link = match(r"\/.*vk\.com\/(.*)", username)
+        if matched_link is None:
+            matched_mention = match(r"\/.*\[id(.*)\|.*\].*", username)
+
+        if all(x is None for x in (matched_mention, matched_link)):
             return None
 
-        info = await api.users.get([matched.group(1)])
-        if info == []:
+        info = await api.users.get([matched_link.group(1)], name_case)
+        if not info:
             return None
 
         return {
@@ -28,7 +36,7 @@ class VKHandler:
         }
 
     @staticmethod
-    async def ban(*args, **kwargs):
+    async def ban(*args, **kwargs) -> int:
         return await api.groups.ban(group_id=abs(ban_group_id), *args, **kwargs)
 
     @staticmethod
@@ -53,5 +61,5 @@ class VKHandler:
         return await api.wall.get_comments(owner_id=ban_group_id, sort="desc", **kwargs)
 
     @staticmethod
-    async def send_message(*args, **kwargs):
-        await api.messages.send(*args, **kwargs)
+    async def send_message(*args, **kwargs) -> int:
+        return await api.messages.send(*args, **kwargs)

@@ -1,51 +1,57 @@
 from vkbottle.user import Message, UserLabeler
 
 from helpfuncs.functions import ReformatHandler
-from helpfuncs.jsonfunctions import JSONHandler, ModeratorHandler, DictionaryFuncs
+from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler, ModeratorHandler
 from helpfuncs.vkfunctions import VKHandler
 
-from .rules import CheckRights, Rights
-
+from .rules import CheckPermissions, Groups, Rights
 
 moderext_labeler = UserLabeler()
 moderext_labeler.vbml_ignore_case = True
-moderext_labeler.custom_rules["access"] = CheckRights
+moderext_labeler.custom_rules["access"] = CheckPermissions
+
 moderator_json = JSONHandler("moderators.json")
 formatted_json = JSONHandler("formatted.json")
 
 
 @moderext_labeler.private_message(
-    access=Rights.supermoderator,
+    access=[Groups.MODERATOR, Rights.MIDDLE],
     text="Добмод <vk_id> <MBid:int>",
 )
-async def addModeratorVK(message: Message, vk_id, MBid: int = 1):
+async def add_moderator(
+    message: Message,
+    vk_id: str,
+    MB_id: int = 1,
+) -> None:
     moderator_handler = await ModeratorHandler.create()
-    if vk_id is None:
+    if not vk_id:
         await message.answer("Забыл ссылку на страницу!")
         return
 
     user_info = await VKHandler.get_user_info(vk_id)
-    if user_info == None:
+    if user_info is None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
+
+    moderator_data = {
+        "ID": MB_id,
+        "first_name": user_info["first_name"],
+        "last_name": user_info["last_name"],
+    }
     result = await moderator_handler.add_moderator(
-        str(user_info["id"]),
-        {
-            "ID": MBid,
-            "first_name": user_info["first_name"],
-            "last_name": user_info["last_name"],
-            "rights": 1,
-            "groups": [],
-        },
+        str(user_info["id"]), moderator_data, Groups.MODERATOR
     )
+
     if result == "exists":
         await message.answer("Модератор уже добавлен")
-    if result == "success":
+    elif result == "success":
         await message.answer("Модератор добавлен в список")
 
 
-@moderext_labeler.private_message(access=Rights.supermoderator, text="Удалмод <vk_id>")
-async def deleteModeratorVK(message: Message, vk_id):
+@moderext_labeler.private_message(
+    access=[Groups.MODERATOR, Rights.MIDDLE], text="Удалмод <vk_id>"
+)
+async def delete_moderator(message: Message, vk_id) -> None:
     moderator_handler = await ModeratorHandler.create()
     if vk_id is None:
         await message.answer("Забыл ссылку на страницу!")
@@ -62,17 +68,19 @@ async def deleteModeratorVK(message: Message, vk_id):
         await message.answer("Модератор был убран из списка")
 
 
-@moderext_labeler.private_message(access=Rights.supermoderator, text="Модсписок")
-async def checkModeratorsVK(message: Message):
+@moderext_labeler.private_message(
+    access=[Groups.MODERATOR, Rights.MIDDLE], text="Модсписок"
+)
+async def check_moderators(message: Message) -> None:
     data = moderator_json.get_data()
-    reformatted = await ReformatHandler.reformat_moderator_dict(data)
+    reformatted = await ReformatHandler.reformat_moderator_dict(data, "moderator")
     await message.answer(f"Модераторы с правами у бота:\n{reformatted}")
 
 
 @moderext_labeler.private_message(
-    access=Rights.supermoderator, text="Добсокр <abbreviation> <full_text>"
+    access=[Groups.MODERATOR, Rights.MIDDLE], text="Добсокр <abbreviation> <full_text>"
 )
-async def add_abbreviation(message: Message, abbreviation: str, full_text: str):
+async def add_abbreviation(message: Message, abbreviation: str, full_text: str) -> None:
     if abbreviation is None or full_text is None:
         await message.answer("Забыл сокращения или полный текст")
         return
@@ -96,9 +104,11 @@ async def add_abbreviation(message: Message, abbreviation: str, full_text: str):
 
 
 @moderext_labeler.private_message(
-    access=Rights.supermoderator, text="Измсокр <abbreviation> <full_text>"
+    access=[Groups.MODERATOR, Rights.MIDDLE], text="Измсокр <abbreviation> <full_text>"
 )
-async def add_abbreviation(message: Message, abbreviation: str, full_text: str):
+async def edit_abbreviation(
+    message: Message, abbreviation: str, full_text: str
+) -> None:
     if abbreviation is None or full_text is None:
         await message.answer("Забыл сокращения или полный текст")
         return

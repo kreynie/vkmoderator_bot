@@ -1,24 +1,23 @@
 from asyncio import sleep as asleep
-from os import remove
 from time import localtime, strftime
 
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
-from helpfuncs.functions import ReformatHandler, PhotoHandler, async_list_generator
+from helpfuncs.functions import PhotoHandler, ReformatHandler, async_list_generator
 from helpfuncs.jsonfunctions import JSONHandler, ModeratorHandler
 from helpfuncs.vkfunctions import VKHandler
 
-from .rules import CheckRights, Rights
+from .rules import CheckPermissions, Groups, Rights
 
 moderator_labeler = UserLabeler()
 moderator_labeler.vbml_ignore_case = True
-moderator_labeler.custom_rules["access"] = CheckRights
+moderator_labeler.custom_rules["access"] = CheckPermissions
 json_handler = JSONHandler()
 
 
 @moderator_labeler.private_message(
-    access=Rights.moderator,
+    access=[Groups.MODERATOR, Rights.LOW],
     text=[
         "Бан <user_id> <comment> <ban_time> <moderator_id>",
         "Бан <user_id> <comment> <ban_time>",
@@ -26,7 +25,7 @@ json_handler = JSONHandler()
 )
 async def ban_and_post(
     message: Message, user_id, ban_time, comment="", moderator_id=""
-):
+) -> None:
     return_reason = None
 
     full_info = await VKHandler.get_user_info(user_id)
@@ -102,10 +101,10 @@ async def ban_and_post(
             pics = []
             async for photo in async_list_generator(photos):
                 photo_handler = PhotoHandler(photo=photo.sizes)
-                filename = await photo_handler.download_photo()
-                data = await VKHandler.upload_image(filename)
-                remove(filename)
+                file = await photo_handler.get_photo()
+                data = await VKHandler.upload_image(file)
                 pics.append(data)
+                del file  # deletes image from memory after uploading it to VK server
 
             reply = (
                 f"{user_full_name}",

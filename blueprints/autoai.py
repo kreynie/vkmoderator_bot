@@ -1,26 +1,25 @@
 from asyncio import sleep
-from loguru import logger
 from time import time
+
+from loguru import logger
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
-from .rules import CheckRights, Rights
 from helpfuncs.functions import CommentsHandler, async_list_generator
 from helpfuncs.vkfunctions import VKHandler
+from wordsdetector import AIHandler, AIState, BadWordsDetector
 
-
-from wordsdetector import BadWordsDetector, AIState, AIHandler
-
+from .rules import CheckPermissions, Groups, Rights
 
 ai = BadWordsDetector()
 ai_handler = AIHandler()
 ai_labeler = UserLabeler()
 ai_labeler.vbml_ignore_case = True
-ai_labeler.custom_rules["access"] = CheckRights
+ai_labeler.custom_rules["access"] = CheckPermissions
 
 
 @ai_labeler.private_message(
-    access=Rights.supermoderator,
+    access=[Groups.MODERATOR, Rights.MIDDLE],
     text="ai_add <level> <text>",
 )
 async def ai_add_text(message: Message, level: int, text: str):
@@ -29,7 +28,7 @@ async def ai_add_text(message: Message, level: int, text: str):
 
 
 @ai_labeler.private_message(
-    access=Rights.supermoderator,
+    access=[Groups.MODERATOR, Rights.MIDDLE],
     text="ai_test <text>",
 )
 async def ai_add_text(message: Message, text: str):
@@ -41,7 +40,7 @@ async def ai_add_text(message: Message, text: str):
 
 
 @ai_labeler.private_message(
-    access=Rights.admin,
+    access=[Groups.MODERATOR, Rights.ADMIN],
     text="ai_switch",
 )
 async def ai_switch_state(message: Message):
@@ -49,7 +48,7 @@ async def ai_switch_state(message: Message):
     await message.answer(f"ai state: {state.name}")
 
 
-@ai_labeler.private_message(access=Rights.admin, text="ai_train")
+@ai_labeler.private_message(access=[Groups.MODERATOR, Rights.ADMIN], text="ai_train")
 async def ai_train(message: Message):
     await message.answer("Пробую...")
     try:

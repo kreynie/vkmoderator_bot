@@ -1,16 +1,27 @@
 from vkbottle.user import Message, UserLabeler
 
 from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler
-from .rules import Rights, CheckRights, get_user_permissions
 
+from .rules import CheckPermissions, Groups, PermissionChecker, Rights
 
 help_labeler = UserLabeler()
 help_labeler.vbml_ignore_case = True
-help_labeler.custom_rules["access"] = CheckRights
+help_labeler.custom_rules["access"] = CheckPermissions
 
 
-@help_labeler.private_message(access=Rights.moderator, text="помощь")
-async def help_handler(message: Message):
+@help_labeler.private_message(access=[Groups.MODERATOR, Rights.LOW], text="сокращения")
+async def get_abbreviations(message: Message) -> None:
+    abbreviations_dict = JSONHandler("formatted.json").get_data().get("abbreviations")
+    formatted_abbreviations = await DictionaryFuncs.dict_to_string(
+        dictionary=abbreviations_dict, prefix="-", postfix=">", indent=1
+    )
+    await message.answer(
+        message="Список доступных сокращений:\n" + formatted_abbreviations,
+    )
+
+
+@help_labeler.private_message(access=[Groups.MODERATOR, Rights.LOW], text="помощь")
+async def moderator_helper(message: Message) -> None:
     raw_help = [
         "Использование бота:",
         "▶️ Бан <userID> <comment> <time>",
@@ -23,8 +34,9 @@ async def help_handler(message: Message):
         "---> <time> - ничего не указывать / перм / пермач / навсегда",
         "▶️ Сокращения - для просмотра всех доступных сокращений",
     ]
-    user_id = str(message.from_id)
-    current_permissions = await get_user_permissions(user_id, "rights")
+    current_permissions = await PermissionChecker.get_user_permissions(
+        str(message.from_id), Groups.MODERATOR
+    )
     if current_permissions >= 2:
         raw_help.extend(
             (
@@ -41,7 +53,7 @@ async def help_handler(message: Message):
                 "• <full_text> - полный текст",
                 "▶️ ai_add <level> <text> - добавить в базу бота выражение, где",
                 "• <level> - 0 или 1, 1 - нарушение",
-                "• <text> - СЫРОЙ текст из комментария, т.е. такой, какой есть (без упоминания других пользователей)",
+                "• <text> - СЫРОЙ текст из комментария, т.е. просто копипаста (без упоминания других пользователей)",
             )
         )
 
@@ -59,7 +71,7 @@ async def help_handler(message: Message):
             (
                 "\n\n",
                 "Остальные команды: ",
-                "▶️ Права <user_id> <rights:int>",
+                "▶️ Права <user_id> <group> <value>",
                 "▶️ ai_switch",
             )
         )
@@ -67,12 +79,37 @@ async def help_handler(message: Message):
     await message.answer("\n".join(raw_help))
 
 
-@help_labeler.private_message(access=Rights.moderator, text="Сокращения")
-async def get_abbreviations(message: Message):
-    abbreviations_dict = JSONHandler("formatted.json").get_data().get("abbreviations")
+@help_labeler.private_message(access=[Groups.LEGAL, Rights.LOW], text="ЛТсокр")
+async def legal_abbreviations(message: Message) -> None:
+    abbreviations_dict = (
+        JSONHandler("formatted.json").get_data().get("legal_abbreviations")
+    )
     formatted_abbreviations = await DictionaryFuncs.dict_to_string(
         dictionary=abbreviations_dict, prefix="-", postfix=">", indent=1
     )
     await message.answer(
         message="Список доступных сокращений:\n" + formatted_abbreviations,
     )
+
+
+@help_labeler.private_message(access=[Groups.LEGAL, Rights.LOW], text="ЛТпомощь")
+async def legal_helper(message: Message) -> None:
+    raw_help = [
+        "Использование бота (команды без учета регистра букв):",
+        "▶️ ЛТ <public> <user> <reason> <post>",
+        "▶️ ЛТСокр - для просмотра всех доступных сокращений Legal Team",
+    ]
+    current_permissions = await PermissionChecker.get_user_permissions(
+        str(message.from_id), Groups.MODERATOR
+    )
+    if current_permissions >= 2:
+        raw_help.extend(
+            (
+                "\n\n",
+                "Закрытые LT команды: ",
+                "▶️ ДобЛТ <user_id>",
+                "--> Пример: Добмод vk.com/steel_wg 69",
+                "▶️ УдалЛТ <vkID>, где <vkID> - ссылка на страницу",
+                "▶️ ЛТсписок",
+            )
+        )

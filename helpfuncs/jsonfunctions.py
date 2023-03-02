@@ -1,6 +1,9 @@
 import json
 from re import findall
-from typing import Union, Any
+from typing import TYPE_CHECKING, Any, Union
+
+if TYPE_CHECKING:
+    from blueprints.rules import Groups
 
 
 class JSONHandler:
@@ -30,7 +33,9 @@ class ModeratorHandler(JSONHandler):
         self.moderator_list = self.get_data()
         return self
 
-    async def add_moderator(self, moderator_id: str, moderator_data: dict) -> str:
+    async def add_moderator(
+        self, moderator_id: str, moderator_data: dict, group: Groups
+    ) -> str:
         """Add moderator's key to dictionary
 
         Args:
@@ -44,6 +49,9 @@ class ModeratorHandler(JSONHandler):
         if moderator_id in self.moderator_list:
             return "exists"
         self.moderator_list[moderator_id] = moderator_data
+        self.moderator_list = DictionaryFuncs.add_value(
+            self.moderator_list, moderator_id, {f"{group.name.lower()}": 1}
+        )
 
         self.refresh_and_sort(self.moderator_list)
         return "success"
@@ -121,6 +129,27 @@ class DictionaryFuncs:
                 if subpath:
                     return f"{key}{cls.separator}{subpath}"
         return None
+
+    @classmethod
+    async def get_value_by_key_path(
+        cls, dictionary: dict, path: str, default: Any = None
+    ) -> Any:
+        """
+        Retrieve the value of a key in a nested dictionary using its path.
+
+        Example:
+            >>> get_value_by_key_path(my_dict, "key1.key2.key3")
+
+        Returns:
+            The value of the key if it exists, or None if the key is not found.
+        """
+        keys = path.split(cls.separator)
+        value = dictionary
+        for key in keys:
+            value = value.get(key, default)
+            if value is None:
+                return None
+        return value
 
     @classmethod
     async def add_value(

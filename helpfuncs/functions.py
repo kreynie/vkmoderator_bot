@@ -1,12 +1,11 @@
-from random import randint, choice
+import io
+from asyncio import to_thread
 from time import time
-from typing import Any
+from typing import Literal
 
-from aiofiles import open as async_open
 from aiohttp import ClientSession
 
 from .jsonfunctions import JSONHandler
-
 
 json_handler = JSONHandler("formatted.json")
 data = json_handler.get_data()
@@ -46,13 +45,15 @@ class ReformatHandler:
         return "SМВ" if rights == 3 else "МВ"
 
     @staticmethod
-    async def reformat_moderator_dict(moderator_dict: dict) -> str:
+    async def reformat_moderator_dict(
+        moderator_dict: dict, group: Literal["moderator", "legal"]
+    ) -> str:
         r = []
         for moderator in moderator_dict:
             current_moderator = moderator_dict[moderator]
             if current_moderator["first_name"] != "TEST":
                 prefix = await ReformatHandler.reformat_moderator_id(
-                    current_moderator["rights"]
+                    current_moderator["groups"][group]
                 )
                 r.append(
                     f"@id{moderator}"
@@ -67,8 +68,8 @@ class PhotoHandler:
     def __init__(self, photo: list | None) -> None:
         self.photo = photo
 
-    async def get_photo(self) -> str:
-        """get_photo
+    async def get_photo_max_size(self) -> str:
+        """get_photo_max_size
 
         Returns:
             str: returns max photo size from all sizes list
@@ -80,16 +81,14 @@ class PhotoHandler:
                 maxSizeIndex = index
         return self.photo[maxSizeIndex].url
 
-    async def download_photo(self) -> str | None:
+    async def get_photo(self) -> str:
         async with ClientSession() as session:
-            url = await self.get_photo()
+            url = await self.get_photo_max_size()
             async with session.get(url) as resp:
                 if resp.status == 200:
-                    file_name = f"{round(time() + randint(0, 1000))}.jpg"
-                    async with async_open(file_name, mode="wb") as f:
-                        await f.write(await resp.read())
-                        await f.close()
-                    return file_name
+                    buffer = await to_thread(io.BytesIO)
+                    await to_thread(buffer.write, await resp.read())
+                    return buffer.getvalue()
 
 
 class CommentsHandler:
