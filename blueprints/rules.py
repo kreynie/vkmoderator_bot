@@ -1,52 +1,33 @@
-from enum import Enum
+from typing import List
+
 from vkbottle.dispatch.rules import ABCRule
 from vkbottle.user import Message
 
-from helpfuncs.jsonfunctions import JSONHandler
+from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler
 
+from .enums import Groups, Rights
 
 json_handler = JSONHandler()
+dict_handler = DictionaryFuncs()
 
 
-class Rights(Enum):
-    moderator = 1
-    supermoderator = 2
-    lead = 3
-    admin = 4
+class PermissionChecker:
+    @classmethod
+    async def get_user_permissions(cls, user_id: str, permission_type: Groups) -> int:
+        moderators = json_handler.get_data()
+        return await dict_handler.get_value_by_key_path(
+            dictionary=moderators,
+            path=f"{user_id}.{permission_type.value}",
+            default=0,
+        )
 
 
-async def get_user_permissions(user_id: str, flag: str = None) -> int:
-    moderators = json_handler.get_data()
-    if user_id in moderators and flag:
-        return moderators[user_id].get(flag, 1)
-    return 0
-
-
-async def check_permissions(user_permissions: int, access_level: int) -> bool:
-    if access_level:
-        return user_permissions >= access_level
-
-
-class CheckRights(ABCRule[Message]):
-    def __init__(self, level: int) -> None:
-        self.level = level
+class CheckPermissions(ABCRule[Message]):
+    def __init__(self, data: List[tuple[Groups, Rights]]) -> None:
+        self.permission_type, self.level = data
 
     async def check(self, event: Message) -> bool:
-        rights = await get_user_permissions(str(event.from_id), "rights")
-        permissions = await check_permissions(rights, self.level.value)
-        return permissions
-
-
-class Groups(Enum):
-    moderator = 1
-    legal = 2
-
-
-class CheckGroups(ABCRule[Message]):
-    def __init__(self, group: str) -> None:
-        self.group = group
-
-    async def check(self, event: Message) -> bool:
-        groups = get_user_permissions(str(event.from_id), "groups")
-        rights = rights[str(event.from_id)].get(groups, Groups.moderator.value)
-        return rights >= Groups.legal.value
+        permissions = await PermissionChecker.get_user_permissions(
+            str(event.from_id), self.permission_type
+        )
+        return permissions >= self.level.value

@@ -1,18 +1,20 @@
+from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler
+from helpfuncs.vkfunctions import VKHandler
 from vkbottle.user import Message, UserLabeler
 
-from helpfuncs.jsonfunctions import JSONHandler
-from helpfuncs.vkfunctions import VKHandler
-
-from .rules import CheckRights, Rights
+from .rules import CheckPermissions, Groups, Rights
 
 admin_labeler = UserLabeler()
 admin_labeler.vbml_ignore_case = True
-admin_labeler.custom_rules["access"] = CheckRights
+admin_labeler.custom_rules["access"] = CheckPermissions
 json_handler = JSONHandler()
+dict_handler = DictionaryFuncs()
 
 
-@admin_labeler.private_message(access=Rights.admin, text="Права <user_id> <rights:int>")
-async def change_rights(message: Message, user_id: str = None, rights: int = 1):
+@admin_labeler.private_message(
+    access=[Groups.MODERATOR, Rights.ADMIN], text="Права <user_id> <group> <value:int>"
+)
+async def change_rights(message: Message, user_id: str, group: str, value: int) -> None:
     if user_id is None:
         await message.answer("Забыл ссылку на страницу!")
         return
@@ -21,9 +23,17 @@ async def change_rights(message: Message, user_id: str = None, rights: int = 1):
     if user_info == None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
+    user_id = str(user_info["id"])
 
-    result = json_handler.edit_value(str(user_info["id"]), "rights", rights)
-    if result == "not_exists":
+    data = json_handler.get_data()
+    code, result = await dict_handler.edit_value(
+        data[user_id],
+        f"groups{DictionaryFuncs.separator}{group}",
+        value,
+    )
+    if code == "not_found":
         await message.answer("Не найден ключ")
-    if result == "success":
+    if code == "success":
+        data[user_id]["groups"] = result
+        json_handler.save_data(data)
         await message.answer("Готово")

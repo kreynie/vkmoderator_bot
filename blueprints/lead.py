@@ -5,17 +5,18 @@ from vkbottle.user import Message, UserLabeler
 
 from helpfuncs.jsonfunctions import JSONHandler
 
-from .rules import CheckRights, Rights
-
+from .rules import CheckPermissions, Groups, Rights
 
 lead_labeler = UserLabeler()
 lead_labeler.vbml_ignore_case = True
-lead_labeler.custom_rules["access"] = CheckRights
+lead_labeler.custom_rules["access"] = CheckPermissions
 json_handler = JSONHandler()
 
 
-@lead_labeler.private_message(access=Rights.lead, text="Минус <reason>")
-async def match_incorrect_ban(message: Message, reason: str = ""):
+@lead_labeler.private_message(
+    access=[Groups.MODERATOR, Rights.LEAD], text="Минус <reason>"
+)
+async def match_incorrect_ban(message: Message, reason: str = "") -> None:
     if message.attachments is None:
         await message.answer("Не найден пересланный пост")
         return

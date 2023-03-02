@@ -1,6 +1,8 @@
 import json
 from re import findall
-from typing import Union, Any
+from typing import Any, Literal, Union
+
+from blueprints.enums import Groups
 
 
 class JSONHandler:
@@ -30,7 +32,12 @@ class ModeratorHandler(JSONHandler):
         self.moderator_list = self.get_data()
         return self
 
-    async def add_moderator(self, moderator_id: str, moderator_data: dict) -> str:
+    async def is_exists(self, moderator_id: str) -> bool:
+        return moderator_id in self.moderator_list
+
+    async def add_moderator(
+        self, moderator_id: str, moderator_data: dict, group: Groups
+    ) -> Literal["success", "exists"]:
         """Add moderator's key to dictionary
 
         Args:
@@ -38,17 +45,20 @@ class ModeratorHandler(JSONHandler):
             moderator_data (dict): values to be in the key
 
         Returns:
-            str: "not_exists" if there is no moderator_id in dictionary
+            str: "exists" if there is no moderator_id in dictionary
                  "success" if succeed
         """
-        if moderator_id in self.moderator_list:
+        if await self.is_exists(moderator_id):
             return "exists"
         self.moderator_list[moderator_id] = moderator_data
+        self.moderator_list[moderator_id]["groups"] = {f"{group.name.lower()}": 1}
 
         self.refresh_and_sort(self.moderator_list)
         return "success"
 
-    async def delete_moderator(self, moderator_id: str) -> str:
+    async def delete_moderator(
+        self, moderator_id: str
+    ) -> Literal["success", "not_exists"]:
         """Delete moderator's key from dictionary
 
         Args:
@@ -58,14 +68,14 @@ class ModeratorHandler(JSONHandler):
             str: "not_exists" if there is no moderator_id in dictionary
                 "success" if succeed
         """
-        if moderator_id not in self.moderator_list:
+        if not await self.is_exists(moderator_id):
             return "not_exists"
         del self.moderator_list[str(moderator_id)]
 
         self.refresh_and_sort(self.moderator_list)
         return "success"
 
-    async def find_moderator_by_id(self, moderator_id: str):
+    async def find_moderator_by_id(self, moderator_id: str) -> Any | None:
         result = await DictionaryFuncs.find_key_by_value(
             value=int(findall("\d+", moderator_id)[0]),
             key="ID",
@@ -78,7 +88,7 @@ class ModeratorHandler(JSONHandler):
         moderator_id: str,
         key: Union[int, str, bool],
         value: Any,
-    ) -> str:
+    ) -> Literal["success", "not_exists"]:
         """Edit any value in moderator dict
 
         Args:
@@ -123,9 +133,30 @@ class DictionaryFuncs:
         return None
 
     @classmethod
+    async def get_value_by_key_path(
+        cls, dictionary: dict, path: str, default: Any = None
+    ) -> Any:
+        """
+        Retrieve the value of a key in a nested dictionary using its path.
+
+        Example:
+            >>> get_value_by_key_path(my_dict, "key1.key2.key3")
+
+        Returns:
+            The value of the key if it exists, or None if the key is not found.
+        """
+        keys = path.split(cls.separator)
+        value = dictionary
+        for key in keys:
+            value = value.get(key, default)
+            if value is None:
+                return None
+        return value
+
+    @classmethod
     async def add_value(
         cls, dictionary: dict, target_key: str, new_value: Any
-    ) -> tuple((str, dict)):
+    ) -> tuple[Literal["success", "exists"], dict]:
         """
         Add a new value to a key in a nested dictionary. If the key
         does not exist, create it along with any necessary intermediate dictionaries.
@@ -134,8 +165,8 @@ class DictionaryFuncs:
             >>> add_value(my_dict, f"{first_key}{separator}{second_key}", value)
 
         Returns:
-            ``exists``: the key already exists
-            ``success``: succeeded
+            ``exists``: the key already exists, old dictionary
+            ``success``: succeeded, new dictionary
         """
         path_parts = target_key.split(cls.separator)
         target_path = await cls.find_key_path(dictionary, path_parts[-1])
@@ -165,9 +196,9 @@ class DictionaryFuncs:
             ``success``: succeeded
         """
         path_parts = target_key.split(cls.separator)
-        target_path = await cls.find_key_path(dictionary, path_parts[-1])
-        if target_path is None:
-            return "not_found", {}
+        # target_path = await cls.find_key_path(dictionary, path_parts[-1])
+        # if target_path is None:
+        #     return "not_found", {}
 
         current_dict = dictionary
         for key in path_parts[:-1]:

@@ -1,8 +1,8 @@
 from loguru import logger
 from vkbottle.user import User
 
-from blueprints.autoai import ai_activate
 from blueprints import labelers
+from blueprints.autoai import ai_activate
 from config import api, labeler
 
 logger.remove()
