@@ -1,12 +1,11 @@
 from asyncio import sleep as asleep
 from time import localtime, strftime
 
-from vkbottle import VKAPIError
-from vkbottle.user import Message, UserLabeler
-
 from helpfuncs.functions import PhotoHandler, ReformatHandler, async_list_generator
 from helpfuncs.jsonfunctions import JSONHandler, ModeratorHandler
 from helpfuncs.vkfunctions import VKHandler
+from vkbottle import VKAPIError
+from vkbottle.user import Message, UserLabeler
 
 from .rules import CheckPermissions, Groups, Rights
 

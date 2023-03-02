@@ -25,9 +25,9 @@ class VKHandler:
             return None
 
         if matched_link:
-            matched_link = matched_link.group(1)
-            if matched_link.startswith("id"):
-                matched = matched_link.strip("id")
+            matched = matched_link.group(1)
+            if matched.startswith("id"):
+                matched = matched.strip("id")
 
         if matched_mention:
             matched = matched_mention.group(1)
