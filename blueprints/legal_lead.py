@@ -54,7 +54,8 @@ async def add_legal(message: Message, user_id: str, MB_id: int = None) -> None:
             await message.answer("Не найден ключ")
         case "success":
             if result:
-                json_handler.save_data(result)
+                data[user_id] = result
+                json_handler.save_data(data)
             await message.answer("Готово")
         case "exists":
             await message.answer(f"У модератора уже есть права")
