@@ -80,15 +80,16 @@ async def moderator_helper(message: Message) -> None:
 
 @help_labeler.private_message(access=[Groups.LEGAL, Rights.LOW], text="ЛТсокр")
 async def legal_abbreviations(message: Message) -> None:
-    abbreviations_dict = (
-        JSONHandler("formatted.json").get_data().get("legal_abbreviations")
-    )
-    formatted_abbreviations = await DictionaryFuncs.dict_to_string(
-        dictionary=abbreviations_dict, prefix="-", postfix=">", indent=1
-    )
-    await message.answer(
-        message="Список доступных сокращений:\n" + formatted_abbreviations,
-    )
+    # abbreviations_dict = (
+    #     JSONHandler("formatted.json").get_data().get("legal_abbreviations")
+    # )
+    # formatted_abbreviations = await DictionaryFuncs.dict_to_string(
+    #     dictionary=abbreviations_dict, prefix="-", postfix=">", indent=1
+    # )
+    # await message.answer(
+    #     message="Список доступных сокращений:\n" + formatted_abbreviations,
+    # )
+    await message.answer("Пока пирожок на чилле, на жире")
 
 
 @help_labeler.private_message(access=[Groups.LEGAL, Rights.LOW], text="ЛТпомощь")

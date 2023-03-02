@@ -89,4 +89,4 @@ async def remove_legal(message: Message, user_id: str) -> None:
 async def list_legal(message: Message) -> None:
     data = json_handler.get_data()
     reformatted = await ReformatHandler.reformat_moderator_dict(data, "legal")
-    await message.answer(f"Модераторы с правами у бота:\n{reformatted}")
+    await message.answer(f"Модераторы с правами Legal Team:\n{reformatted}")

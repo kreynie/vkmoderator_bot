@@ -41,7 +41,7 @@ class ReformatHandler:
         return result.capitalize() if result != "" else None
 
     @staticmethod
-    async def reformat_moderator_id(rights: int = 1) -> str:
+    async def reformat_moderator_id(rights: int) -> str:
         return "SМВ" if rights == 3 else "МВ"
 
     @staticmethod
@@ -51,9 +51,11 @@ class ReformatHandler:
         r = []
         for moderator in moderator_dict:
             current_moderator = moderator_dict[moderator]
-            if current_moderator["first_name"] != "TEST":
+            if current_moderator["first_name"] != "TEST" and current_moderator[
+                "groups"
+            ].get(group):
                 prefix = await ReformatHandler.reformat_moderator_id(
-                    current_moderator["groups"][group]
+                    current_moderator["groups"].get(group)
                 )
                 r.append(
                     f"@id{moderator}"
