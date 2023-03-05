@@ -1,8 +1,8 @@
+import joblib
+import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-import pandas as pd
-import joblib
 
 
 class BadWordsDetector:
@@ -31,8 +31,10 @@ class BadWordsDetector:
         self.model.fit(X, y)
         await self.save()
 
-    async def predict(self, comment) -> list:
-        return self.model.predict((comment,))[0]
+    async def predict(self, comments: tuple | str) -> tuple | int:
+        if isinstance(comments, tuple):
+            return tuple(self.model.predict(comments))
+        return int(self.model.predict((comments,)))
 
     async def save(self) -> None:
         joblib.dump(self.model, self.model_file)

@@ -8,7 +8,10 @@ help_labeler.vbml_ignore_case = True
 help_labeler.custom_rules["access"] = CheckPermissions
 
 
-@help_labeler.private_message(access=[Groups.MODERATOR, Rights.LOW], text="сокращения")
+@help_labeler.private_message(
+    access=[Groups.MODERATOR, Rights.LOW],
+    text="сокращения",
+)
 async def get_abbreviations(message: Message) -> None:
     abbreviations_dict = JSONHandler("formatted.json").get_data().get("abbreviations")
     formatted_abbreviations = await DictionaryFuncs.dict_to_string(
@@ -19,7 +22,10 @@ async def get_abbreviations(message: Message) -> None:
     )
 
 
-@help_labeler.private_message(access=[Groups.MODERATOR, Rights.LOW], text="помощь")
+@help_labeler.private_message(
+    access=[Groups.MODERATOR, Rights.LOW],
+    text="помощь",
+)
 async def moderator_helper(message: Message) -> None:
     raw_help = [
         "Использование бота:",
@@ -34,7 +40,7 @@ async def moderator_helper(message: Message) -> None:
         "▶️ Сокращения - для просмотра всех доступных сокращений",
     ]
     current_permissions = await PermissionChecker.get_user_permissions(
-        str(message.from_id), Groups.MODERATOR
+        message.from_id, Groups.MODERATOR
     )
     if current_permissions >= 2:
         raw_help.extend(
@@ -78,21 +84,18 @@ async def moderator_helper(message: Message) -> None:
     await message.answer("\n".join(raw_help))
 
 
-@help_labeler.private_message(access=[Groups.LEGAL, Rights.LOW], text="ЛТсокр")
+@help_labeler.private_message(
+    access=[Groups.LEGAL, Rights.LOW],
+    text="ЛТсокр",
+)
 async def legal_abbreviations(message: Message) -> None:
-    # abbreviations_dict = (
-    #     JSONHandler("formatted.json").get_data().get("legal_abbreviations")
-    # )
-    # formatted_abbreviations = await DictionaryFuncs.dict_to_string(
-    #     dictionary=abbreviations_dict, prefix="-", postfix=">", indent=1
-    # )
-    # await message.answer(
-    #     message="Список доступных сокращений:\n" + formatted_abbreviations,
-    # )
     await message.answer("Пока пирожок на чилле, на жире")
 
 
-@help_labeler.private_message(access=[Groups.LEGAL, Rights.LOW], text="ЛТпомощь")
+@help_labeler.private_message(
+    access=[Groups.LEGAL, Rights.LOW],
+    text="ЛТпомощь",
+)
 async def legal_helper(message: Message) -> None:
     raw_help = [
         "Использование бота (команды без учета регистра букв):",
@@ -100,7 +103,7 @@ async def legal_helper(message: Message) -> None:
         "▶️ ЛТСокр - для просмотра всех доступных сокращений Legal Team",
     ]
     current_permissions = await PermissionChecker.get_user_permissions(
-        str(message.from_id), Groups.LEGAL
+        message.from_id, Groups.LEGAL
     )
     if current_permissions >= 2:
         raw_help.extend(

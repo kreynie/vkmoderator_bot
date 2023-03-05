@@ -1,20 +1,19 @@
-from re import search
+from re import match
 
+from config import moderator_db
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
-
-from helpfuncs.jsonfunctions import JSONHandler
 
 from .rules import CheckPermissions, Groups, Rights
 
 lead_labeler = UserLabeler()
 lead_labeler.vbml_ignore_case = True
 lead_labeler.custom_rules["access"] = CheckPermissions
-json_handler = JSONHandler()
 
 
 @lead_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.LEAD], text="Минус <reason>"
+    access=[Groups.MODERATOR, Rights.LEAD],
+    text="Минус <reason>",
 )
 async def match_incorrect_ban(message: Message, reason: str = "") -> None:
     if message.attachments is None:
@@ -25,16 +24,17 @@ async def match_incorrect_ban(message: Message, reason: str = "") -> None:
         return
 
     post_text = message.attachments[0].wall.text
-    match_moderator_id = search(r".*((М|M)(В|B)\d+).*", post_text)
+    match_moderator_id = match(r".*[мМM][вВB](\d+).*", post_text)
     if match_moderator_id is None:
         await message.answer("Не удалось найти МВ в тексте поста")
         return
+    moderator_id = match_moderator_id.group(1)
 
     try:
-        moderator_vk_id = json_handler.find_moderator_by_id(match_moderator_id.group(0))
+        moderator_vk_id = await moderator_db.get_user_by_id(moderator_id)
         sender_info = await message.get_user()
-        reason = f"⚠️ {sender_info.first_name} {sender_info.last_name} нашел ошибку в твоем бане.\nКомментарий: {reason}"
-        await message.ctx_api.messages.send(int(moderator_vk_id), 0, message=reason)
+        text = f"⚠️ {sender_info.first_name} {sender_info.last_name} нашел ошибку в твоем бане.\nКомментарий: {reason}"
+        await message.ctx_api.messages.send(int(moderator_vk_id), 0, message=text)
     except VKAPIError:
         await message.answer("ВК не дал отправить сообщение модератору")
     except:

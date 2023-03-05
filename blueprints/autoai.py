@@ -1,12 +1,11 @@
-from asyncio import sleep
+import asyncio
 from time import time
+from typing import NoReturn
 
-from loguru import logger
-from vkbottle import VKAPIError
-from vkbottle.user import Message, UserLabeler
-
-from helpfuncs.functions import CommentsHandler, async_list_generator
+from helpfuncs.functions import CommentsHandler
 from helpfuncs.vkfunctions import VKHandler
+from loguru import logger
+from vkbottle.user import Message, UserLabeler
 from wordsdetector import AIHandler, AIState, BadWordsDetector
 
 from .rules import CheckPermissions, Groups, Rights
@@ -22,7 +21,7 @@ ai_labeler.custom_rules["access"] = CheckPermissions
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="ai_add <level> <text>",
 )
-async def ai_add_text(message: Message, level: int, text: str):
+async def ai_add_text(message: Message, level: int, text: str) -> None:
     await ai.add_text_data(text, float(level))
     await message.answer("ok")
 
@@ -31,11 +30,11 @@ async def ai_add_text(message: Message, level: int, text: str):
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="ai_test <text>",
 )
-async def ai_add_text(message: Message, text: str):
+async def ai_add_text(message: Message, text: str) -> None:
     predictions = await ai.predict(text)
     await message.answer(
         "AI predictions:\n"
-        + ("No violations" if predictions == 0 else "Violated comment")
+        + ("No violations" if predictions == 0 else "Violated comment(-s)")
     )
 
 
@@ -43,13 +42,16 @@ async def ai_add_text(message: Message, text: str):
     access=[Groups.MODERATOR, Rights.ADMIN],
     text="ai_switch",
 )
-async def ai_switch_state(message: Message):
+async def ai_switch_state(message: Message) -> None:
     state = ai_handler.switch()
     await message.answer(f"ai state: {state.name}")
 
 
-@ai_labeler.private_message(access=[Groups.MODERATOR, Rights.ADMIN], text="ai_train")
-async def ai_train(message: Message):
+@ai_labeler.private_message(
+    access=[Groups.MODERATOR, Rights.ADMIN],
+    text="ai_train",
+)
+async def ai_train(message: Message) -> None:
     await message.answer("Пробую...")
     try:
         await ai.train()
@@ -59,59 +61,53 @@ async def ai_train(message: Message):
         await message.answer("Нейросеть переобучилась")
 
 
-async def ai_activate():
+async def ai_activate() -> NoReturn:
     last_state = None
     while True:
         state = ai_handler.state
         logger.info("AI | Checking state")
         logger.info(
-            "AI | Last state: {}".format(
-                "no state" if last_state is None else AIState(last_state).name
-            )
+            f"AI | Last state: {AIState(last_state).name if last_state else 'no state'}"
         )
         logger.info(f"AI | Current state: {AIState(state).name}")
-        if state.value:
-            try:
-                start_time = time()
-                posts = await VKHandler.get_posts(5)
-                detected_comments = []
-                async for post in async_list_generator(posts):
-                    comments_raw = await VKHandler.get_comments(
-                        post_id=post.id, count=100
-                    )
-                    async for comment in CommentsHandler.get_texts_from_comments(
-                        comments_raw
-                    ):
-                        predictions = await ai.predict(comment["text"])
-                        if predictions > 0:
-                            detected_comments.append(
-                                {
-                                    "post_id": post.id,
-                                    "id": comment["id"],
-                                    # "from_id": comment["from_id"],
-                                    "text": comment["text"],
-                                }
-                            )
-                results = [
-                    f"▶️{comment['text']}\n"
-                    + f"https://vk.com/wall-49033185_{comment['post_id']}?reply={comment['id']}\n"
-                    for comment in detected_comments
-                ]
-                end_time = time()
-                elapsed_time = end_time - start_time
-                counted_time = f"Elapsed time: {elapsed_time:.2f} seconds\n"
-                if detected_comments != []:
-                    await VKHandler.send_message(
-                        651285022,
-                        0,
-                        message=counted_time
-                        + f"AI found {len(results)} violent comments:\n"
-                        + "\n".join(results),
-                    )
-            except VKAPIError as e:
-                await sleep(5)
-                await VKHandler.send_message(
-                    651285022, 0, message=f"Failed\n{e.code}: {e.description}"
-                )
         last_state = state
-        await sleep(900)
+        if not state.value:
+            await asyncio.sleep(300)
+            continue
+
+        start_time = time()
+        posts = await VKHandler.get_posts(5)
+        detected_comments = []
+        for post in posts:
+            comments = await VKHandler.get_comments(post_id=post.id, count=100)
+            comments = comments.items
+            predictions = await asyncio.gather(
+                *[ai.predict(comment.text) for comment in comments]
+            )
+            for comment, prediction in zip(comments, predictions):
+                if prediction == 0:
+                    continue
+                detected_comments.append(
+                    {
+                        "post_id": post.id,
+                        "id": comment.id,
+                        "text": comment.text,
+                    }
+                )
+        results = [
+            f"{comment['text']}\n"
+            + f"https://vk.com/wall-49033185_{comment['post_id']}?reply={comment['id']}\n"
+            for comment in detected_comments
+        ]
+        end_time = time()
+        if detected_comments:
+            elapsed_time = end_time - start_time
+            counted_time = f"Elapsed time: {elapsed_time:.2f} seconds\n"
+            await VKHandler.send_message(
+                651285022,
+                0,
+                message=counted_time
+                + f"AI found {len(results)} violent comments:\n"
+                + "\n".join(results),
+            )
+        await asyncio.sleep(900)

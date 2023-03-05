@@ -1,7 +1,7 @@
 import io
 from asyncio import to_thread
 from time import time
-from typing import Literal
+from typing import Any, AsyncGenerator, Dict, List, Literal
 
 from aiohttp import ClientSession
 
@@ -41,26 +41,27 @@ class ReformatHandler:
         return result.capitalize() if result != "" else None
 
     @staticmethod
-    async def reformat_moderator_id(rights: int) -> str:
-        return "SМВ" if rights == 3 else "МВ"
+    async def reformat_moderator_id(
+        allowance: int, prefix_base: Literal["МВ", "LT"]
+    ) -> str:
+        return "S" + prefix_base if allowance == 3 else prefix_base
 
     @staticmethod
     async def reformat_moderator_dict(
-        moderator_dict: dict, group: Literal["moderator", "legal"]
+        moderator_dict: List[Dict[str, Any]],
+        group: Literal["moderators", "legal"],
     ) -> str:
         r = []
         for moderator in moderator_dict:
-            current_moderator = moderator_dict[moderator]
-            if current_moderator["first_name"] != "TEST" and current_moderator[
-                "groups"
-            ].get(group):
+            if moderator["first_name"] != "TEST":
+                prefix_base = "МВ" if group == "moderators" else "LT"
                 prefix = await ReformatHandler.reformat_moderator_id(
-                    current_moderator["groups"].get(group)
+                    moderator.get("allowance"), prefix_base
                 )
                 r.append(
-                    f"@id{moderator}"
-                    f"({current_moderator['first_name']} {current_moderator['last_name']}) "
-                    f"({prefix}{current_moderator['ID']})"
+                    f"@id{moderator['id']}"
+                    f"({moderator['first_name']} {moderator['last_name']}) "
+                    f"({prefix}{moderator['key']})"
                 )
 
         return "\n".join(r)
@@ -76,26 +77,26 @@ class PhotoHandler:
         Returns:
             str: returns max photo size from all sizes list
         """
-        maxSize, maxSizeIndex = 0, 0
+        max_size, max_size_index = 0, 0
         for index, size in enumerate(self.photo):
-            if maxSize < size.height:
-                maxSize = size.height
-                maxSizeIndex = index
-        return self.photo[maxSizeIndex].url
+            if max_size < size.height:
+                max_size = size.height
+                max_size_index = index
+        return self.photo[max_size_index].url
 
     async def get_photo(self) -> bytes:
         async with ClientSession() as session:
             url = await self.get_photo_max_size()
             async with session.get(url) as resp:
                 if resp.status == 200:
-                    buffer = await to_thread(io.BytesIO)
-                    await to_thread(buffer.write, await resp.read())
-                    return buffer.getvalue()
+                    photo = await to_thread(io.BytesIO)
+                    await to_thread(photo.write, await resp.read())
+                    return photo.getvalue()
 
 
 class CommentsHandler:
     @staticmethod
-    async def get_texts_from_comments(comments) -> dict:
+    async def get_data_from_comments(comments) -> AsyncGenerator:
         for x in comments.items:
             if x.from_id != 0:
                 yield {"id": x.id, "from_id": x.from_id, "text": x.text}
