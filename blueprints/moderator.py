@@ -25,10 +25,10 @@ async def ban(message: Message, user, ban_time, comment="", moderator_id="") -> 
     return_reason = None
 
     full_info = await VKHandler.get_user_info(user)
-    # already_banned = await VKHandler.check_if_banned(full_info["id"])
-    # if already_banned:
-    #     await message.answer("Пользователь уже забанен в группе")
-    #     return
+    already_banned = await VKHandler.check_if_banned(full_info["id"])
+    if already_banned:
+        await message.answer("Пользователь уже забанен в группе")
+        return
 
     reformatter = ReformatHandler(ban_time)
     full_comment = await reformatter.reformat_comment(comment.lower())
