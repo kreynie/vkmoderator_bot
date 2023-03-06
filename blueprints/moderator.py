@@ -51,7 +51,7 @@ async def ban(message: Message, user, ban_time, comment="", moderator_id="") -> 
         or comment.lower() == "ода"
     ):
         photos = message.get_photo_attachments()
-        if photos == []:
+        if not photos:
             await message.answer(
                 f"⚠️Ошибка получения информации\n" "Проверь картинки для бани"
             )
@@ -59,10 +59,10 @@ async def ban(message: Message, user, ban_time, comment="", moderator_id="") -> 
 
     if moderator_id.startswith("\\"):
         moderator_id = moderator_id[1:]
-        moderator_vk = await moderator_db.get_user_by_id(moderator_id)
+        moderator_vk = await moderator_db.get_user_by_id(int(moderator_id.strip("МВ")))
     else:
-        banner = await moderator_db.get_user_by_id(moderator_id)
-        level = await reformatter.reformat_moderator_id(banner["allowance"], "МВ")
+        banner = await moderator_db.get_user_by_id(message.from_id)
+        level = await reformatter.reformat_moderator_id(banner.get("allowance"), "МВ")
         moderator_id = level + str(banner["key"])
 
     time_unix = await reformatter.reformat_time()
@@ -87,15 +87,16 @@ async def ban(message: Message, user, ban_time, comment="", moderator_id="") -> 
         f"{full_info['first_name']} {full_info['last_name']} получил банхаммером {ftime}\n"
     )
 
-    await post(
-        message=message,
-        photos=photos,
-        moderator_vk=moderator_vk,
-        moderator_id=moderator_id,
-        full_info=full_info,
-        comment=comment,
-        ban_time=ban_time,
-    )
+    if photos:
+        await post(
+            message=message,
+            photos=photos,
+            moderator_vk=moderator_vk,
+            moderator_id=moderator_id,
+            full_info=full_info,
+            comment=comment,
+            ban_time=ban_time,
+        )
 
     await asleep(3)
 
