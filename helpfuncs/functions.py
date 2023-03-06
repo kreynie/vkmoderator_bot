@@ -1,5 +1,6 @@
 import io
 from asyncio import to_thread
+from re import match
 from time import time
 from typing import Any, AsyncGenerator, Dict, List, Literal
 
@@ -105,3 +106,23 @@ class CommentsHandler:
 async def async_list_generator(lst: list):
     for key in lst:
         yield key
+
+
+async def get_id_from_text(user: str) -> int | None:
+    matched_mention = None
+    matched_link = match(r".*vk\.com\/(.*)", user)
+    if matched_link is None:
+        matched_mention = match(r"\[id(.+?)\|", user)
+
+    if all(x is None for x in (matched_mention, matched_link)):
+        return None
+
+    if matched_link:
+        matched = matched_link.group(1)
+        if matched.startswith("id"):
+            matched = matched.strip("id")
+
+    if matched_mention:
+        matched = matched_mention.group(1)
+
+    return matched

@@ -17,11 +17,17 @@ moderator_labeler.custom_rules["access"] = CheckPermissions
 @moderator_labeler.private_message(
     access=[Groups.MODERATOR, Rights.LOW],
     text=[
-        "Бан <user> <comment> <ban_time> <moderator_id>",
+        "Бан <user> <comment> <ban_time> <banner_key>",
         "Бан <user> <comment> <ban_time>",
     ],
 )
-async def ban(message: Message, user, ban_time, comment="", moderator_id="") -> None:
+async def ban(
+    message: Message,
+    user: str,
+    ban_time: str,
+    comment: str = "",
+    banner_key: str = "",
+) -> None:
     return_reason = None
 
     full_info = await VKHandler.get_user_info(user)
@@ -57,21 +63,21 @@ async def ban(message: Message, user, ban_time, comment="", moderator_id="") -> 
             )
             return
 
-    if moderator_id.startswith("\\"):
-        moderator_id = moderator_id[1:]
-        moderator_vk = await moderator_db.get_user_by_id(int(moderator_id.strip("МВ")))
+    if banner_key.startswith("\\"):
+        banner_key = banner_key[1:]
+        banner = await moderator_db.get_user_by_id(int(banner_key.strip("МВ")))
     else:
         banner = await moderator_db.get_user_by_id(message.from_id)
         level = await reformatter.reformat_moderator_id(banner.get("allowance"), "МВ")
-        moderator_id = level + str(banner["key"])
+        banner_key = level + str(banner.get("key"))
 
     time_unix = await reformatter.reformat_time()
     try:
         await VKHandler.ban(
-            owner_id=full_info["id"],
+            owner_id=full_info.get("id"),
             end_date=time_unix,
             reason=0,
-            comment=f"{full_comment} | {moderator_id}",
+            comment=f"{full_comment} | {banner_key}",
             comment_visible=True,
         )
     except:
@@ -91,8 +97,8 @@ async def ban(message: Message, user, ban_time, comment="", moderator_id="") -> 
         await post(
             message=message,
             photos=photos,
-            moderator_vk=moderator_vk,
-            moderator_id=moderator_id,
+            banner_id=banner.get("id"),
+            banner_key=banner_key,
             full_info=full_info,
             comment=comment,
             ban_time=ban_time,
@@ -104,8 +110,8 @@ async def ban(message: Message, user, ban_time, comment="", moderator_id="") -> 
 async def post(
     message: Message,
     photos: list,
-    moderator_vk: int,
-    moderator_id: str,
+    banner_id: int,
+    banner_key: str,
     full_info: dict,
     comment: str,
     ban_time: str,
@@ -119,12 +125,12 @@ async def post(
             uploaded_photos.append(data)
             del photo  # deletes image from memory after uploading it to VK server
 
-        user_full_name = f'{full_info["first_name"]} {full_info["last_name"]}'
+        user_full_name = f"{full_info.get('first_name')} {full_info.get('last_name')}"
         reply = (
             f"{user_full_name}",
-            f"https://vk.com/id{full_info['id']}",
+            f"https://vk.com/id{full_info.get('id')}",
             f"{comment} - {ban_time}",
-            f"@id{moderator_vk}({moderator_id})\n",
+            f"@id{banner_id}({banner_key})\n",
         )
 
         await VKHandler.post(

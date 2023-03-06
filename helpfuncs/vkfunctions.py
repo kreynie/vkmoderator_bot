@@ -5,6 +5,8 @@ from config import api, ban_group_id, ban_reason_group_id
 from vkbottle import VKAPIError
 from vkbottle.tools import PhotoWallUploader
 
+from helpfuncs.functions import get_id_from_text
+
 
 class VKHandler:
     @staticmethod
@@ -16,21 +18,9 @@ class VKHandler:
         username: str,
         name_case: Optional[Literal["nom", "gen", "dat", "acc", "ins", "abl"]] = None,
     ) -> Dict[str, str | int] | None:
-        matched_mention = None
-        matched_link = match(r".*vk\.com\/(.*)", username)
-        if matched_link is None:
-            matched_mention = match(r"\[id(.+?)\|", username)
-
-        if all(x is None for x in (matched_mention, matched_link)):
+        matched = await get_id_from_text(username)
+        if not matched:
             return None
-
-        if matched_link:
-            matched = matched_link.group(1)
-            if matched.startswith("id"):
-                matched = matched.strip("id")
-
-        if matched_mention:
-            matched = matched_mention.group(1)
 
         info = await api.users.get(matched, name_case)
         if not info:

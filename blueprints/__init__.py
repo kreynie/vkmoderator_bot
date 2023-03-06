@@ -1,5 +1,6 @@
 from .admin import admin_labeler
 from .autoai import ai_labeler
+from .common import common_labeler
 from .help import help_labeler
 from .lead import lead_labeler
 from .legal import lt_labeler
@@ -18,6 +19,7 @@ labelers = [
     ai_labeler,
     lt_labeler,
     ltl_labeler,
+    common_labeler,
 ]
 
 __all__ = [*labelers]
