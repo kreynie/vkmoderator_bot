@@ -12,7 +12,7 @@ ltl_labeler.custom_rules["access"] = CheckPermissions
 
 @ltl_labeler.private_message(
     access=[Groups.LEGAL, Rights.LEAD],
-    text=["ДобЛТ <user> <legal_id:int>", "ДобЛТ <user_id>"],
+    text="ДобЛТ <user> <legal_id:int>",
 )
 async def add_legal(message: Message, user: str, legal_id: int) -> None:
     if user is None:
@@ -22,21 +22,22 @@ async def add_legal(message: Message, user: str, legal_id: int) -> None:
         await message.answer("Забыл айдишник")
 
     user_info = await VKHandler.get_user_info(user)
-    if user_info == None:
+    if user_info is None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
-    user_id = user_info["id"]
 
-    if await legal_db.has_user(user_id):
+    if await legal_db.has_user(user_info.id):
         await message.answer("Уже есть в списке")
         return
 
-    if not await users_db.has_user(user_id):
+    if not await users_db.has_user(user_info.id):
         await users_db.add_user(
-            user_id, user_info["first_name"], user_info["last_name"]
+            user_info.id,
+            user_info.first_name,
+            user_info.last_name,
         )
 
-    code = await legal_db.add_user(user_id, legal_id, 1)
+    code = await legal_db.add_user(user_info.id, legal_id, 1)
     if code:
         await message.answer("Добавлен")
     else:
@@ -53,16 +54,15 @@ async def remove_legal(message: Message, user: str) -> None:
         return
 
     user_info = await VKHandler.get_user_info(user)
-    if user_info == None:
+    if user_info is None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
-    user_id = user_info["id"]
 
-    if not await legal_db.has_user(user_id):
+    if not await legal_db.has_user(user_info.id):
         await message.answer("Пользователя нет в списке")
         return
 
-    code = await legal_db.remove_user(user_id)
+    code = await legal_db.remove_user(user_info.id)
     if code:
         await message.answer("Пользователь исключен из списка")
     else:
@@ -75,7 +75,7 @@ async def remove_legal(message: Message, user: str) -> None:
 )
 async def list_legal(message: Message) -> None:
     users = await users_db.get_all("legal")
-    reformatted = await ReformatHandler.reformat_moderator_dict(users)
+    reformatted = await ReformatHandler.reformat_moderator_list(users, "legal")
     await message.answer(
         f"LT с правами у бота:\n{reformatted}" if reformatted else "Ни у кого нет прав"
     )

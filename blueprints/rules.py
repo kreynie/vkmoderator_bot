@@ -1,15 +1,16 @@
 from typing import List
 
 from config import legal_db, moderator_db
+from utils.enums import Groups, Rights
 from vkbottle.dispatch.rules import ABCRule
 from vkbottle.user import Message
-
-from .enums import Groups, Rights
 
 
 class PermissionChecker:
     @classmethod
-    async def get_user_permissions(cls, user_id: int, allowance_type: Groups) -> int:
+    async def get_user_permissions(
+        cls, user_id: int, allowance_type: Groups
+    ) -> int | bool:
         match allowance_type:
             case Groups.MODERATOR:
                 return await moderator_db.get_user_allowance(user_id)

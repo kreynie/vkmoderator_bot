@@ -31,10 +31,11 @@ async def match_incorrect_ban(message: Message, reason: str = "") -> None:
     moderator_id = match_moderator_id.group(1)
 
     try:
-        moderator_vk_id = await moderator_db.get_user_by_id(moderator_id)
-        sender_info = await message.get_user()
-        text = f"⚠️ {sender_info.first_name} {sender_info.last_name} нашел ошибку в твоем бане.\nКомментарий: {reason}"
-        await message.ctx_api.messages.send(int(moderator_vk_id), 0, message=text)
+        moderator_info = await moderator_db.get_user_by_id(moderator_id)
+        sender_info = await moderator_db.get_user_by_id(message.from_id)
+        text = f"⚠️ {sender_info.full_name} нашел ошибку в твоем бане. \
+            \nКомментарий: {reason}"
+        await message.ctx_api.messages.send(moderator_info.id, 0, message=text)
     except VKAPIError:
         await message.answer("ВК не дал отправить сообщение модератору")
     except:

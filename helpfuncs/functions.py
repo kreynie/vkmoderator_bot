@@ -2,9 +2,10 @@ import io
 from asyncio import to_thread
 from re import match
 from time import time
-from typing import Any, AsyncGenerator, Dict, List, Literal
+from typing import AsyncGenerator, List, Literal
 
 from aiohttp import ClientSession
+from utils.info_classes import StuffInfo
 
 from .jsonfunctions import JSONHandler
 
@@ -32,37 +33,39 @@ class ReformatHandler:
 
     @staticmethod
     async def reformat_comment(comment: str) -> str | None:
-        result = []
         if "+" in comment:
-            for value in comment.split("+"):
-                result.append(formatted_abbreviations.get(value, ""))
-            result = ", ".join(result)
+            result = ", ".join(
+                (
+                    formatted_abbreviations.get(value)
+                    for value in comment.strip().split("+")
+                )
+            )
         else:
             result = formatted_abbreviations.get(comment, "")
         return result.capitalize() if result != "" else None
 
     @staticmethod
     async def reformat_moderator_id(
-        allowance: int, prefix_base: Literal["МВ", "LT"]
+        allowance: int, prefix_base: str | Literal["МВ", "LT"]
     ) -> str:
         return "S" + prefix_base if allowance == 3 else prefix_base
 
     @staticmethod
-    async def reformat_moderator_dict(
-        moderator_dict: List[Dict[str, Any]],
+    async def reformat_moderator_list(
+        moderator_dict: List[StuffInfo],
         group: Literal["moderators", "legal"],
     ) -> str:
         r = []
         for moderator in moderator_dict:
-            if moderator["first_name"] != "TEST":
+            if moderator.key >= 0:
                 prefix_base = "МВ" if group == "moderators" else "LT"
                 prefix = await ReformatHandler.reformat_moderator_id(
-                    moderator.get("allowance"), prefix_base
+                    moderator.allowance, prefix_base
                 )
                 r.append(
-                    f"@id{moderator['id']}"
-                    f"({moderator['first_name']} {moderator['last_name']}) "
-                    f"({prefix}{moderator['key']})"
+                    f"@id{moderator.id}"
+                    f"({moderator.full_name}) "
+                    f"({prefix}{moderator.key})"
                 )
 
         return "\n".join(r)
@@ -85,7 +88,7 @@ class PhotoHandler:
                 max_size_index = index
         return self.photo[max_size_index].url
 
-    async def get_photo(self) -> bytes:
+    async def get_photo(self) -> bytes | None:
         async with ClientSession() as session:
             url = await self.get_photo_max_size()
             async with session.get(url) as resp:
@@ -93,6 +96,7 @@ class PhotoHandler:
                     photo = await to_thread(io.BytesIO)
                     await to_thread(photo.write, await resp.read())
                     return photo.getvalue()
+        return None
 
 
 class CommentsHandler:
@@ -125,4 +129,4 @@ async def get_id_from_text(user: str) -> int | None:
     if matched_mention:
         matched = matched_mention.group(1)
 
-    return matched
+    return int(matched)

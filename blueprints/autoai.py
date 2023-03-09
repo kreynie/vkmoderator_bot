@@ -2,7 +2,6 @@ import asyncio
 from time import time
 from typing import NoReturn
 
-from helpfuncs.functions import CommentsHandler
 from helpfuncs.vkfunctions import VKHandler
 from loguru import logger
 from vkbottle.user import Message, UserLabeler
@@ -17,7 +16,7 @@ ai_labeler.vbml_ignore_case = True
 ai_labeler.custom_rules["access"] = CheckPermissions
 
 
-@ai_labeler.private_message(
+@ai_labeler.message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="ai_add <level> <text>",
 )
@@ -26,11 +25,11 @@ async def ai_add_text(message: Message, level: int, text: str) -> None:
     await message.answer("ok")
 
 
-@ai_labeler.private_message(
+@ai_labeler.message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="ai_test <text>",
 )
-async def ai_add_text(message: Message, text: str) -> None:
+async def ai_test(message: Message, text: str) -> None:
     predictions = await ai.predict(text)
     await message.answer(
         "AI predictions:\n"
@@ -47,7 +46,7 @@ async def ai_switch_state(message: Message) -> None:
     await message.answer(f"ai state: {state.name}")
 
 
-@ai_labeler.private_message(
+@ai_labeler.message(
     access=[Groups.MODERATOR, Rights.ADMIN],
     text="ai_train",
 )
@@ -57,6 +56,7 @@ async def ai_train(message: Message) -> None:
         await ai.train()
     except Exception as e:
         await message.answer("Произошла ошибка при попытке обучить нейросеть\n" + e)
+        raise
     else:
         await message.answer("Нейросеть переобучилась")
 
@@ -104,8 +104,8 @@ async def ai_activate() -> NoReturn:
             elapsed_time = end_time - start_time
             counted_time = f"Elapsed time: {elapsed_time:.2f} seconds\n"
             await VKHandler.send_message(
-                651285022,
-                0,
+                peer_id=2000000001,
+                random_id=0,
                 message=counted_time
                 + f"AI found {len(results)} violent comments:\n"
                 + "\n".join(results),

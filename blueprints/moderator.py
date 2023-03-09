@@ -4,6 +4,7 @@ from time import localtime, strftime
 from config import moderator_db
 from helpfuncs.functions import PhotoHandler, ReformatHandler, async_list_generator
 from helpfuncs.vkfunctions import VKHandler
+from utils.info_classes import UserInfo
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
@@ -30,8 +31,8 @@ async def ban(
 ) -> None:
     return_reason = None
 
-    full_info = await VKHandler.get_user_info(user)
-    already_banned = await VKHandler.check_if_banned(full_info["id"])
+    user_info = await VKHandler.get_user_info(user)
+    already_banned = await VKHandler.check_if_banned(user_info.id)
     if already_banned:
         await message.answer("Пользователь уже забанен в группе")
         return
@@ -40,7 +41,7 @@ async def ban(
     full_comment = await reformatter.reformat_comment(comment.lower())
     ban_time_text = await reformatter.reformat_time_to_text()
 
-    if full_info is None:
+    if user_info is None:
         return_reason = "Ошибка получения информации из ссылки"
     if full_comment is None:
         return_reason = "Проверь ПРИЧИНУ бана"
@@ -59,7 +60,8 @@ async def ban(
         photos = message.get_photo_attachments()
         if not photos:
             await message.answer(
-                f"⚠️Ошибка получения информации\n" "Проверь картинки для бани"
+                "⚠️Ошибка получения информации\n \
+                    Проверь картинки для бани"
             )
             return
 
@@ -68,20 +70,20 @@ async def ban(
         banner = await moderator_db.get_user_by_id(int(banner_key.strip("МВ")))
     else:
         banner = await moderator_db.get_user_by_id(message.from_id)
-        level = await reformatter.reformat_moderator_id(banner.get("allowance"), "МВ")
-        banner_key = level + str(banner.get("key"))
+        level = await reformatter.reformat_moderator_id(banner.allowance, "МВ")
+        banner_key = level + str(banner.key)
 
     time_unix = await reformatter.reformat_time()
     try:
         await VKHandler.ban(
-            owner_id=full_info.get("id"),
+            owner_id=user_info.id,
             end_date=time_unix,
             reason=0,
             comment=f"{full_comment} | {banner_key}",
             comment_visible=True,
         )
     except:
-        await message.answer(f"Ошибка при попытке бана")
+        await message.answer("Ошибка при попытке бана")
         raise
 
     if time_unix is None:
@@ -89,17 +91,15 @@ async def ban(
     else:
         ftime = f"\nБолеть будет до {strftime('%d.%m.%y %H:%M', localtime(time_unix))}"
 
-    await message.answer(
-        f"{full_info['first_name']} {full_info['last_name']} получил банхаммером {ftime}\n"
-    )
+    await message.answer(f"{user_info.full_name} получил банхаммером {ftime}\n")
 
     if photos:
         await post(
             message=message,
             photos=photos,
-            banner_id=banner.get("id"),
+            banner_id=banner.id,
             banner_key=banner_key,
-            full_info=full_info,
+            user_info=user_info,
             comment=comment,
             ban_time=ban_time,
         )
@@ -112,7 +112,7 @@ async def post(
     photos: list,
     banner_id: int,
     banner_key: str,
-    full_info: dict,
+    user_info: UserInfo,
     comment: str,
     ban_time: str,
 ) -> None:
@@ -125,10 +125,9 @@ async def post(
             uploaded_photos.append(data)
             del photo  # deletes image from memory after uploading it to VK server
 
-        user_full_name = f"{full_info.get('first_name')} {full_info.get('last_name')}"
         reply = (
-            f"{user_full_name}",
-            f"https://vk.com/id{full_info.get('id')}",
+            f"{user_info.full_name}",
+            f"https://vk.com/id{user_info.id}",
             f"{comment} - {ban_time}",
             f"@id{banner_id}({banner_key})\n",
         )
@@ -141,6 +140,7 @@ async def post(
         await message.answer("Пост в бане успешно сделан")
     except VKAPIError:
         await message.answer(
-            "Что-то пошло не так при попытке сделать пост. Попробуй еще раз. Если не получится, то запость сам\n"
+            "Что-то пошло не так при попытке сделать пост. Попробуй еще раз. \
+            Если не получится, то запость сам\n"
             "Напиши @volonteerblitz(ему) время попытки использования бота."
         )

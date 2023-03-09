@@ -1,9 +1,7 @@
 from helpfuncs.vkfunctions import VKHandler
 from vkbottle.user import Message, UserLabeler
 
-from blueprints.enums import Groups, Rights
-
-from .rules import CheckPermissions
+from .rules import CheckPermissions, Groups, Rights
 
 common_labeler = UserLabeler()
 common_labeler.vbml_ignore_case = True
@@ -16,4 +14,4 @@ async def get_user_permlink(message: Message, user: str) -> None:
         await message.answer("Забыл юзера")
 
     user_info = await VKHandler.get_user_info(user)
-    await message.answer(f"https://vk.com/id{user_info['id']}")
+    await message.answer(f"https://vk.com/id{user_info.id}")

@@ -129,9 +129,11 @@ dmypy.json
 .pyre/
 
 # My stuff
-*.json
 *.log
 test.py
+*.db
+google-api/
+formatted.json
 wordsdetector/dataset/words.csv
 wordsdetector/trained/model.joblib
-*.db
+.vscode/

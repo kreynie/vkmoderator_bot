@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Literal, Tuple
 
 from typing_extensions import override
+from utils.info_classes import StuffInfo, UserInfo
 
 from .base import Database
 
@@ -17,44 +18,31 @@ class BaseTable(Database):
             for trigger_name, condition, action in self.TRIGGERS:
                 self.create_trigger(self.TABLE_NAME, trigger_name, condition, action)
 
-    async def get_user_by_id(self, id: int) -> Dict[str, Any]:
-        return await self.get_item(self.TABLE_NAME, {"id": id})
+    async def get_user_by_id(self, user_id: int) -> Dict[str, Any] | None:
+        return await self.get_item(self.TABLE_NAME, {"id": user_id})
 
-    async def add_user(self, id: int, key: int, allowance: int) -> bool:
+    async def add_user(self, user_id: int, key: int, allowance: int) -> bool:
         result = await self.add_values(
-            self.TABLE_NAME, {"id": id, "key": key, "allowance": allowance}
+            self.TABLE_NAME, {"id": user_id, "key": key, "allowance": allowance}
         )
         return True if result > 0 else False
 
-    async def remove_user(self, id: int) -> bool:
-        result = await self.remove_values(self.TABLE_NAME, {"id": id})
+    async def remove_user(self, user_id: int) -> bool:
+        result = await self.remove_values(self.TABLE_NAME, {"id": user_id})
         return True if result > 0 else False
 
-    async def edit_user_allowance(self, id: int, allowance: int) -> bool:
+    async def edit_user_allowance(self, user_id: int, allowance: int) -> bool:
         result = await self.edit_values(
-            self.TABLE_NAME, {"id": id}, {"allowance": allowance}
+            self.TABLE_NAME, {"id": user_id}, {"allowance": allowance}
         )
         return True if result > 0 else False
 
-    async def get_user_allowance(self, id: int) -> int:
-        allowance = await self.get_item(self.TABLE_NAME, {"id": id}, "allowance")
+    async def get_user_allowance(self, user_id: int) -> int:
+        allowance = await self.get_item(self.TABLE_NAME, {"id": user_id}, "allowance")
         return allowance.get("allowance") if allowance else 0
 
-    async def has_user(self, id: int) -> bool:
-        return not not await self.get_user_by_id(id)
-
-    async def get_all(
-        self,
-        users_group: Literal["moderators", "legal"],
-    ) -> List[Dict[str, Any]] | None:
-        return await self.get_items(
-            "users",
-            target=f"users.id, users.first_name, users.last_name, \
-                {users_group}.key, {users_group}.allowance",
-            join_table=users_group,
-            join_columns=["key", "allowance"],
-            order_by=f"{users_group}.key",
-        )
+    async def has_user(self, user_id: int) -> bool:
+        return not not await self.get_user_by_id(user_id)
 
 
 class UsersTable(BaseTable):
@@ -66,15 +54,71 @@ class UsersTable(BaseTable):
     }
 
     @override
-    async def add_user(self, id: int, first_name: str, last_name: str) -> bool:
+    async def add_user(self, user_id: int, first_name: str, last_name: str) -> bool:
         result = await self.add_values(
             self.TABLE_NAME,
-            {"id": id, "first_name": first_name, "last_name": last_name},
+            {"id": user_id, "first_name": first_name, "last_name": last_name},
         )
-        return result
+        return not not result
+
+    @override
+    async def get_user_by_id(self, user_id: int) -> UserInfo | None:
+        info = await super().get_user_by_id(user_id)
+        if not info:
+            return None
+        return UserInfo(
+            id=info.get("id"),
+            first_name=info.get("first_name"),
+            last_name=info.get("last_name"),
+        )
+
+    async def get_all(
+        self,
+        users_group: Literal["moderators", "legal"],
+    ) -> List[StuffInfo] | None:
+        stuff = await self.get_items(
+            self.TABLE_NAME,
+            target=f"{self.TABLE_NAME}.id, {self.TABLE_NAME}.first_name, \
+                {self.TABLE_NAME}.last_name, {users_group}.key, {users_group}.allowance",
+            join_table=users_group,
+            join_columns=["key", "allowance"],
+            order_by=f"{users_group}.key",
+        )
+        return [
+            StuffInfo(
+                person.get("id"),
+                person.get("first_name"),
+                person.get("last_name"),
+                person.get("key"),
+                person.get("allowance"),
+            )
+            for person in stuff
+        ]
 
 
-class ModeratorTable(BaseTable):
+class StuffTable(BaseTable):
+    @override
+    async def get_user_by_id(self, user_id: int) -> StuffInfo | None:
+        stuff = await super().get_user_by_id(user_id)
+        if not stuff:
+            return None
+        return StuffInfo(
+            stuff.get("id"),
+            stuff.get("first_name"),
+            stuff.get("last_name"),
+            stuff.get("key"),
+            stuff.get("allowance"),
+        )
+
+
+class _DeleteTriggerLogic:
+    BASE_TRIGGER = (
+        {"moderators": "id = OLD.id", "legal": "id = OLD.id"},
+        "DELETE FROM users WHERE id = OLD.id",
+    )
+
+
+class ModeratorTable(StuffTable):
     TABLE_NAME = "moderators"
     COLUMNS = {
         "id": "INT",
@@ -83,16 +127,10 @@ class ModeratorTable(BaseTable):
         "FOREIGN KEY (id)": "REFERENCES users(id)",
     }
 
-    TRIGGERS = [
-        (
-            "delete_user_moderator",
-            {"moderators": "id = OLD.id", "legal": "id = OLD.id"},
-            "DELETE FROM users WHERE id = OLD.id",
-        )
-    ]
+    TRIGGERS = [("delete_user_moderator", *_DeleteTriggerLogic.BASE_TRIGGER)]
 
 
-class LegalTable(BaseTable):
+class LegalTable(StuffTable):
     TABLE_NAME = "legal"
     COLUMNS = {
         "id": "INT",
@@ -101,10 +139,4 @@ class LegalTable(BaseTable):
         "FOREIGN KEY (id)": "REFERENCES users(id)",
     }
 
-    TRIGGERS = [
-        (
-            "delete_user_legal",
-            {"moderators": "id = OLD.id", "legal": "id = OLD.id"},
-            "DELETE FROM users WHERE id = OLD.id",
-        )
-    ]
+    TRIGGERS = [("delete_user_legal", *_DeleteTriggerLogic.BASE_TRIGGER)]

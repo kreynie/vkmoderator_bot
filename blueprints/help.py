@@ -15,7 +15,10 @@ help_labeler.custom_rules["access"] = CheckPermissions
 async def get_abbreviations(message: Message) -> None:
     abbreviations_dict = JSONHandler("formatted.json").get_data().get("abbreviations")
     formatted_abbreviations = await DictionaryFuncs.dict_to_string(
-        dictionary=abbreviations_dict, prefix="-", postfix=">", indent=1
+        dictionary=abbreviations_dict,
+        prefix="-",
+        postfix=">",
+        indent=1,
     )
     await message.answer(
         message="Список доступных сокращений:\n" + formatted_abbreviations,
@@ -29,15 +32,17 @@ async def get_abbreviations(message: Message) -> None:
 async def moderator_helper(message: Message) -> None:
     raw_help = [
         "Использование бота:",
-        "▶️ Бан <userID> <comment> <time>",
-        "• <userID> - ссылка на страницу",
-        '• <comment> - "ключ" для комментария бана. Для уточнения введи команду "Сокращения"',
+        "▶️ Сокращения - для просмотра всех доступных сокращений",
+        "▶️ Бан <user> <reason> <time>",
+        "• <user> - ссылка на страницу либо упоминание через @",
+        '• <reason> - "ключ" для комментария бана. Для уточнения введи команду "Сокращения"',
         "• <time> - срок бана",
         "---> Бан https://vk.com/steel_wg оффтоп день",
+        "---> Бан vk.com/steel_wg нац пермач",
+        "---> Бан @steel_wg оп+ор+оу+оа месяц",
         "⚠️ Для банов от недели и выше требуются скриншоты для публикации в баню",
         "⚠️ Для пермачей используйте один из следующих вариантов:",
         "---> <time> - ничего не указывать / перм / пермач / навсегда",
-        "▶️ Сокращения - для просмотра всех доступных сокращений",
     ]
     current_permissions = await PermissionChecker.get_user_permissions(
         message.from_id, Groups.MODERATOR
@@ -47,18 +52,23 @@ async def moderator_helper(message: Message) -> None:
             (
                 "\n\n",
                 "Закрытые модераторские команды: ",
-                "▶️ Рассылка <text> - рассылает <text> в исходном виде всем модератором из списка бота",
-                "▶️ Добмод <vkID> <MBid>, где <vkID> - ссылка на страницу или упоминание, <MBid> - НОМЕР модератора",
+                "▶️ Рассылка <text> - рассылает <text> в исходном виде \
+                    всем модератором из списка бота",
+                "▶️ Добмод <user> <id>, где <user> - ссылка на страницу \
+                    или упоминание, <id> - НОМЕР модератора",
+                "▶️ Удалмод <user>, где <user> - ссылка на страницу или упоминание",
                 "--> Пример: Добмод vk.com/steel_wg 69",
-                "▶️ Удалмод <vkID>, где <vkID> - ссылка на страницу или упоминание",
+                "--> Пример: Удалмод @steel_wg 69",
                 "▶️ Модсписок",
                 "▶️ Добсокр <abbreviation> <full_text>",
                 "▶️ Измсокр <abbreviation> <full_text>",
+                "▶️ Удалсокр <abbreviation>",
                 "• <abbreviation> - сокращение",
                 "• <full_text> - полный текст",
                 "▶️ ai_add <level> <text> - добавить в базу бота выражение, где",
                 "• <level> - 0 или 1, 1 - нарушение",
-                "• <text> - СЫРОЙ текст из комментария, т.е. просто копипаста (без упоминания других пользователей)",
+                "• <text> - СЫРОЙ текст из комментария, т.е. просто копипаста",
+                "▶️ ai_test <text> - спросить мнение величайшего по поводу комментария",
             )
         )
 
@@ -67,7 +77,8 @@ async def moderator_helper(message: Message) -> None:
             (
                 "\n\n",
                 "Команды для лидов: ",
-                "▶️ Минус <text> - используется вместе с репостом неправильного бана из Бани в ЛС боту. Текст отправляется модератору в ЛС",
+                "▶️ Минус <text> - используется вместе с репостом неправильного \
+                    бана из Бани в ЛС боту. Текст отправляется модератору в ЛС",
             )
         )
 
@@ -76,7 +87,7 @@ async def moderator_helper(message: Message) -> None:
             (
                 "\n\n",
                 "Остальные команды: ",
-                "▶️ Права <user_id> <group> <value>",
+                "▶️ Права <user> <group> <value>",
                 "▶️ ai_switch",
             )
         )
@@ -109,12 +120,11 @@ async def legal_helper(message: Message) -> None:
         raw_help.extend(
             (
                 "\n\n",
-                "Закрытые LT команды: ",
-                "▶️ ДобЛТ <user_id> <MB_id>, где",
-                "<MB_id> ОПЦИОНАЛЬНАЯ настройка, т.е. этот параметр указывать необязательно, \
-                если у модератора уже есть базовые права",
-                "--> Пример: Добмод vk.com/steel_wg 69",
-                "▶️ УдалЛТ <vkID>, где <vkID> - ссылка на страницу или упоминание",
+                "LT команды для лида: ",
+                "▶️ ДобЛТ <user> <LT_id>",
+                "--> доблт vk.com/steel_wg 69",
+                "--> доблт @steel_wg 69",
+                "▶️ УдалЛТ <user>, где <user> - ссылка на страницу или упоминание через @",
                 "▶️ ЛТсписок",
             )
         )

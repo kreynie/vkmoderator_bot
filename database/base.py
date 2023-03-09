@@ -35,7 +35,8 @@ class Database:
         async with aiosqlite.connect(self._db_file) as db:
             for index_def in indexes:
                 await db.execute(
-                    f"CREATE INDEX IF NOT EXISTS {table_name}_{index_def} ON {table_name} ({index_def})"
+                    f"CREATE INDEX IF NOT EXISTS \
+                    {table_name}_{index_def} ON {table_name} ({index_def})"
                 )
 
             await db.commit()
@@ -124,11 +125,10 @@ class Database:
                 query, tuple(condition.values()) if condition else None
             ) as cursor:
                 result = await cursor.fetchone()
-                if result is not None:
-                    columns = [d[0] for d in cursor.description]
-                    return dict(zip(columns, result))
-                else:
+                if not result:
                     return None
+                columns = [d[0] for d in cursor.description]
+                return dict(zip(columns, result))
 
     async def get_items(
         self,

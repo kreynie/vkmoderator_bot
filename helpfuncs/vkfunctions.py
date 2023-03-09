@@ -1,11 +1,11 @@
-from re import match
-from typing import Dict, List, Literal, Optional
+from typing import List, Literal, Optional
 
 from config import api, ban_group_id, ban_reason_group_id
+from utils.info_classes import UserInfo
 from vkbottle import VKAPIError
 from vkbottle.tools import PhotoWallUploader
 
-from helpfuncs.functions import get_id_from_text
+from .functions import get_id_from_text
 
 
 class VKHandler:
@@ -17,7 +17,7 @@ class VKHandler:
     async def get_user_info(
         username: str,
         name_case: Optional[Literal["nom", "gen", "dat", "acc", "ins", "abl"]] = None,
-    ) -> Dict[str, str | int] | None:
+    ) -> UserInfo | None:
         matched = await get_id_from_text(username)
         if not matched:
             return None
@@ -26,11 +26,11 @@ class VKHandler:
         if not info:
             return None
 
-        return {
-            "first_name": info[0].first_name,
-            "last_name": info[0].last_name,
-            "id": info[0].id,
-        }
+        return UserInfo(
+            id=info[0].id,
+            first_name=info[0].first_name,
+            last_name=info[0].last_name,
+        )
 
     @staticmethod
     async def ban(*args, **kwargs) -> int:

@@ -15,17 +15,17 @@ formatted_json = JSONHandler("formatted.json")
 
 @moderext_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
-    text="Добмод <user> <id:int>",
+    text="Добмод <user> <key:int>",
 )
 async def add_moderator(
     message: Message,
-    user: str,
-    id: int,
+    user: str = None,
+    key: int = None,
 ) -> None:
     if not user:
         await message.answer("Забыл ссылку на страницу!")
         return
-    if not id:
+    if not key:
         await message.answer("Забыл МВ")
         return
 
@@ -33,18 +33,15 @@ async def add_moderator(
     if user_info is None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
-    user_id = user_info["id"]
 
-    if await moderator_db.has_user(user_id):
+    if await moderator_db.has_user(user_info.id):
         await message.answer("Пользователь уже есть в списке")
         return
 
-    if not await users_db.has_user(user_id):
-        await users_db.add_user(
-            user_id, user_info["first_name"], user_info["last_name"]
-        )
+    if not await users_db.has_user(user_info.id):
+        await users_db.add_user(user_info.id, user_info.first_name, user_info.last_name)
 
-    code = await moderator_db.add_user(user_id, id, 1)
+    code = await moderator_db.add_user(user_info.id, key, 1)
     if code:
         await message.answer("Добавлен")
     else:
@@ -55,7 +52,7 @@ async def add_moderator(
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="Удалмод <user>",
 )
-async def delete_moderator(message: Message, user: str) -> None:
+async def delete_moderator(message: Message, user: str = None) -> None:
     if user is None:
         await message.answer("Забыл ссылку на страницу!")
         return
@@ -64,13 +61,12 @@ async def delete_moderator(message: Message, user: str) -> None:
     if user_info == None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
-    user_id = user_info["id"]
 
-    if not await moderator_db.has_user(user_id):
+    if not await moderator_db.has_user(user_info.id):
         await message.answer("Пользователя нет в списке")
         return
 
-    code = await moderator_db.remove_user(user_id)
+    code = await moderator_db.remove_user(user_info.id)
     if code:
         await message.answer("Удален")
     else:
@@ -83,7 +79,7 @@ async def delete_moderator(message: Message, user: str) -> None:
 )
 async def list_moderators(message: Message) -> None:
     users = await users_db.get_all("moderators")
-    reformatted = await ReformatHandler.reformat_moderator_dict(users, "moderators")
+    reformatted = await ReformatHandler.reformat_moderator_list(users, "moderators")
     await message.answer(
         f"Модераторы с правами у бота:\n{reformatted}"
         if reformatted
@@ -95,9 +91,13 @@ async def list_moderators(message: Message) -> None:
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="Добсокр <abbreviation> <full_text>",
 )
-async def add_abbreviation(message: Message, abbreviation: str, full_text: str) -> None:
+async def add_abbreviation(
+    message: Message,
+    abbreviation: str = None,
+    full_text: str = None,
+) -> None:
     if abbreviation is None or full_text is None:
-        await message.answer("Забыл сокращения или полный текст")
+        await message.answer("Забыл сокращение или полный текст")
         return
     formatted_dict = formatted_json.get_data()
     result, updated_abbreviations = await DictionaryFuncs.add_value(
@@ -107,9 +107,9 @@ async def add_abbreviation(message: Message, abbreviation: str, full_text: str) 
     )
     match result:
         case "success":
-            await message.answer(f"Сокращение «{abbreviation}» добавлено")
             formatted_dict["abbreviations"] = updated_abbreviations
             formatted_json.save_data(formatted_dict)
+            await message.answer(f"Сокращение «{abbreviation}» добавлено")
         case "exists":
             await message.answer(f"Сокращение «{abbreviation}» уже есть в списке")
 
@@ -119,10 +119,12 @@ async def add_abbreviation(message: Message, abbreviation: str, full_text: str) 
     text="Измсокр <abbreviation> <full_text>",
 )
 async def edit_abbreviation(
-    message: Message, abbreviation: str, full_text: str
+    message: Message,
+    abbreviation: str = None,
+    full_text: str = None,
 ) -> None:
     if abbreviation is None or full_text is None:
-        await message.answer("Забыл сокращения или полный текст")
+        await message.answer("Забыл сокращение или полный текст")
         return
     formatted_dict = formatted_json.get_data()
     result, updated_abbreviations = await DictionaryFuncs.edit_value(
@@ -132,9 +134,32 @@ async def edit_abbreviation(
     )
     match result:
         case "success":
-            await message.answer(f"Сокращение «{abbreviation}» изменено")
             formatted_dict["abbreviations"] = updated_abbreviations
             formatted_json.save_data(formatted_dict)
+            await message.answer(f"Сокращение «{abbreviation}» изменено")
+        case "not_found":
+            await message.answer(f"Сокращения «{abbreviation}» нет в списке")
+        case _:
+            await message.answer(f"Что-то пошло не так. Код ошибки: {result}")
+
+
+@moderext_labeler.private_message(
+    access=[Groups.MODERATOR, Rights.MIDDLE],
+    text="Удалсокр <abbreviation>",
+)
+async def remove_abbreviation(message: Message, abbreviation: str = None) -> None:
+    if abbreviation is None:
+        await message.answer("Забыл сокращение")
+        return
+    formatted_dict = formatted_json.get_data()
+    result, updated_abbreviations = await DictionaryFuncs.remove_key(
+        formatted_dict, f"abbreviations{DictionaryFuncs.separator}{abbreviation}"
+    )
+    match result:
+        case "success":
+            formatted_dict["abbreviations"] = updated_abbreviations
+            formatted_json.save_data(formatted_dict)
+            await message.answer(f"Сокращение «{abbreviation}» удалено")
         case "not_found":
             await message.answer(f"Сокращения «{abbreviation}» нет в списке")
         case _:
