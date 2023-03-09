@@ -10,6 +10,6 @@ class Rights(Enum):
 
 
 class Groups(Enum):
-    MODERATOR = None
-    LEGAL = None
-    ANY = None
+    ANY = 0
+    MODERATOR = 1
+    LEGAL = 2

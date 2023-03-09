@@ -7,10 +7,8 @@ from vkbottle.user import Message
 
 
 class PermissionChecker:
-    @classmethod
-    async def get_user_permissions(
-        cls, user_id: int, allowance_type: Groups
-    ) -> int | bool:
+    @staticmethod
+    async def get_user_permissions(user_id: int, allowance_type: Groups) -> int | bool:
         match allowance_type:
             case Groups.MODERATOR:
                 return await moderator_db.get_user_allowance(user_id)
