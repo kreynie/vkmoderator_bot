@@ -15,10 +15,10 @@ class VKHandler:
 
     @staticmethod
     async def get_user_info(
-        username: str,
+        user: str,
         name_case: Optional[Literal["nom", "gen", "dat", "acc", "ins", "abl"]] = None,
     ) -> UserInfo | None:
-        matched = await get_id_from_text(username)
+        matched = await get_id_from_text(user)
         if not matched:
             return None
 

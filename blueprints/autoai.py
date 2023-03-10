@@ -65,11 +65,11 @@ async def ai_activate() -> NoReturn:
     last_state = None
     while True:
         state = ai_handler.state
-        logger.info("AI | Checking state")
-        logger.info(
+        logger.debug("AI | Checking state")
+        logger.debug(
             f"AI | Last state: {AIState(last_state).name if last_state else 'no state'}"
         )
-        logger.info(f"AI | Current state: {AIState(state).name}")
+        logger.debug(f"AI | Current state: {AIState(state).name}")
         last_state = state
         if not state.value:
             await asyncio.sleep(300)
@@ -102,12 +102,14 @@ async def ai_activate() -> NoReturn:
         end_time = time()
         if detected_comments:
             elapsed_time = end_time - start_time
-            counted_time = f"Elapsed time: {elapsed_time:.2f} seconds\n"
+            text_template = (
+                f"Elapsed time: {elapsed_time:.2f} seconds\n"
+                + f"AI found {len(results)} violent comments:\n"
+                + "\n".join(results)
+            )
             await VKHandler.send_message(
                 peer_id=2000000001,
                 random_id=0,
-                message=counted_time
-                + f"AI found {len(results)} violent comments:\n"
-                + "\n".join(results),
+                message=text_template,
             )
         await asyncio.sleep(900)

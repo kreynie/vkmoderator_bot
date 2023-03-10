@@ -112,7 +112,7 @@ async def async_list_generator(lst: list):
         yield key
 
 
-async def get_id_from_text(user: str) -> int | None:
+async def get_id_from_text(user: str) -> str | None:
     matched_mention = None
     matched_link = match(r".*vk\.com\/(.*)", user)
     if matched_link is None:
@@ -129,4 +129,4 @@ async def get_id_from_text(user: str) -> int | None:
     if matched_mention:
         matched = matched_mention.group(1)
 
-    return int(matched)
+    return matched
