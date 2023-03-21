@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Self
+from typing import Any
 
 import aiohttp
 from google.oauth2.service_account import Credentials
@@ -15,7 +15,7 @@ class GoogleSheetAPI:
         self.spreadsheet_id = spreadsheet_id
         self.session = aiohttp.ClientSession()
 
-    async def __aenter__(self) -> Self:
+    async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:

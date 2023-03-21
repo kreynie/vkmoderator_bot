@@ -7,13 +7,15 @@ help_labeler = UserLabeler()
 help_labeler.vbml_ignore_case = True
 help_labeler.custom_rules["access"] = CheckPermissions
 
+get_json = JSONHandler("formatted.json").get_data
+
 
 @help_labeler.private_message(
     access=[Groups.MODERATOR, Rights.LOW],
     text="сокращения",
 )
 async def get_abbreviations(message: Message) -> None:
-    abbreviations_dict = JSONHandler("formatted.json").get_data().get("abbreviations")
+    abbreviations_dict = get_json().get("abbreviations")
     formatted_abbreviations = await DictionaryFuncs.dict_to_string(
         dictionary=abbreviations_dict,
         prefix="-",
@@ -98,8 +100,8 @@ async def moderator_helper(message: Message) -> None:
     text="ЛТсокр",
 )
 async def legal_abbreviations(message: Message) -> None:
-    abbreviations_dict = JSONHandler("formatted.json").get_data().get("ltabbreviations")
-    games_abbreviations_dict = JSONHandler("formatted.json").get_data().get("games")
+    abbreviations_dict = get_json().get("ltabbreviations")
+    games_abbreviations_dict = get_json().get("games")
     abbreviations_dict = await DictionaryFuncs.dict_to_string(abbreviations_dict)
     games_abbreviations_dict = await DictionaryFuncs.dict_to_string(
         games_abbreviations_dict
@@ -120,8 +122,18 @@ async def legal_abbreviations(message: Message) -> None:
 async def legal_helper(message: Message) -> None:
     raw_help = [
         "Использование бота (команды без учета регистра букв):",
-        "▶️ ЛТ <public> <user> <reason> <post> <game>",
         "▶️ ЛТСокр - для просмотра всех доступных сокращений Legal Team",
+        "▶️ ЛТ <public> <reason> <post> <game> <flea>",
+        "--> public - ссылка на группу",
+        "--> reason - причина",
+        "--> post - ссылка на пост",
+        "--> game - игра",
+        "--> flea - необязательный параметр. Отмечает барахолки",
+        "▶️ ЛТ <user> <reason> <post> <game> <dialog_time>",
+        "--> user - ссылка на пользователя",
+        "--> dialog_time - время пересылки диалога Троллю",
+        "⚠️ При указании ссылки по дефолту скриншотится ПОСТ",
+        "Если хотите свой скриншот, то просто прикрепите к своему сообщению с командой",
     ]
     current_permissions = await PermissionChecker.get_user_permissions(
         message.from_id, Groups.LEGAL
