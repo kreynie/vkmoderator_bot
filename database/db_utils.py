@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from typing_extensions import override
 from utils.info_classes import StuffInfo, UserInfo
@@ -18,8 +18,12 @@ class BaseTable(Database):
             for trigger_name, condition, action in self.TRIGGERS:
                 self.create_trigger(self.TABLE_NAME, trigger_name, condition, action)
 
-    async def get_user_by_id(self, user_id: int) -> Dict[str, Any] | None:
-        return await self.get_item(self.TABLE_NAME, {"id": user_id})
+    async def get_user_by_id(
+        self,
+        user_id: int,
+        group: Optional[Literal["users", "moderators", "legal"]] = None,
+    ) -> Dict[str, Any] | None:
+        return await self.get_item(self.TABLE_NAME, {"id": user_id}, join_table=group)
 
     async def add_user(self, user_id: int, key: int, allowance: int) -> bool:
         result = await self.add_values(
@@ -30,16 +34,6 @@ class BaseTable(Database):
     async def remove_user(self, user_id: int) -> bool:
         result = await self.remove_values(self.TABLE_NAME, {"id": user_id})
         return True if result > 0 else False
-
-    async def edit_user_allowance(self, user_id: int, allowance: int) -> bool:
-        result = await self.edit_values(
-            self.TABLE_NAME, {"id": user_id}, {"allowance": allowance}
-        )
-        return True if result > 0 else False
-
-    async def get_user_allowance(self, user_id: int) -> int:
-        allowance = await self.get_item(self.TABLE_NAME, {"id": user_id}, "allowance")
-        return allowance.get("allowance") if allowance else 0
 
     async def has_user(self, user_id: int) -> bool:
         return not not await self.get_user_by_id(user_id)
@@ -66,49 +60,39 @@ class UsersTable(BaseTable):
         info = await super().get_user_by_id(user_id)
         if not info:
             return None
-        return UserInfo(
-            id=info.get("id"),
-            first_name=info.get("first_name"),
-            last_name=info.get("last_name"),
-        )
-
-    async def get_all(
-        self,
-        users_group: Literal["moderators", "legal"],
-    ) -> List[StuffInfo] | None:
-        stuff = await self.get_items(
-            self.TABLE_NAME,
-            target=f"{self.TABLE_NAME}.id, {self.TABLE_NAME}.first_name, \
-                {self.TABLE_NAME}.last_name, {users_group}.key, {users_group}.allowance",
-            join_table=users_group,
-            join_columns=["key", "allowance"],
-            order_by=f"{users_group}.key",
-        )
-        return [
-            StuffInfo(
-                person.get("id"),
-                person.get("first_name"),
-                person.get("last_name"),
-                person.get("key"),
-                person.get("allowance"),
-            )
-            for person in stuff
-        ]
+        return UserInfo(**info)
 
 
 class StuffTable(BaseTable):
     @override
     async def get_user_by_id(self, user_id: int) -> StuffInfo | None:
-        stuff = await super().get_user_by_id(user_id)
+        stuff = await super().get_user_by_id(user_id, UsersTable.TABLE_NAME)
         if not stuff:
             return None
-        return StuffInfo(
-            stuff.get("id"),
-            stuff.get("first_name"),
-            stuff.get("last_name"),
-            stuff.get("key"),
-            stuff.get("allowance"),
+        return StuffInfo(**stuff)
+
+    async def get_all(
+        self,
+    ) -> List[StuffInfo] | None:
+        stuff = await self.get_items(
+            self.TABLE_NAME,
+            target=f"{UsersTable.TABLE_NAME}.id, {UsersTable.TABLE_NAME}.first_name, \
+                {UsersTable.TABLE_NAME}.last_name, {self.TABLE_NAME}.key, {self.TABLE_NAME}.allowance",
+            join_table=UsersTable.TABLE_NAME,
+            join_columns=["id", "first_name", "last_name"],
+            order_by=f"{self.TABLE_NAME}.key",
         )
+        return [StuffInfo(**person) for person in stuff]
+
+    async def edit_user_allowance(self, user_id: int, allowance: int) -> bool:
+        result = await self.edit_values(
+            self.TABLE_NAME, {"id": user_id}, {"allowance": allowance}
+        )
+        return True if result > 0 else False
+
+    async def get_user_allowance(self, user_id: int) -> int:
+        allowance = await self.get_item(self.TABLE_NAME, {"id": user_id}, "allowance")
+        return allowance.get("allowance") if allowance else 0
 
 
 class _DeleteTriggerLogic:

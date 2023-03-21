@@ -1,6 +1,6 @@
-from helpfuncs.jsonfunctions import JSONHandler
-from .states import AIState
+from helpfuncs import JSONHandler
 
+from .states import AIState
 
 json_handler = JSONHandler("ai.json")
 

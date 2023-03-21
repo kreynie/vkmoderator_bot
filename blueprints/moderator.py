@@ -2,8 +2,8 @@ from asyncio import sleep as asleep
 from time import localtime, strftime
 
 from config import moderator_db
-from helpfuncs.functions import PhotoHandler, ReformatHandler, async_list_generator
-from helpfuncs.vkfunctions import VKHandler
+from helpfuncs import VKHandler
+from helpfuncs.functions import ReformatHandler
 from utils.info_classes import UserInfo
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
@@ -20,6 +20,7 @@ moderator_labeler.custom_rules["access"] = CheckPermissions
     text=[
         "Бан <user> <comment> <ban_time> <banner_key>",
         "Бан <user> <comment> <ban_time>",
+        "Бан <user> <comment>",  # TODO: сделать время необязательным параметром, к каждому нарушению дефолтное время
     ],
 )
 async def ban(
@@ -38,8 +39,8 @@ async def ban(
         return
 
     reformatter = ReformatHandler(ban_time)
-    full_comment = await reformatter.reformat_comment(comment.lower())
-    ban_time_text = await reformatter.reformat_time_to_text()
+    full_comment = await reformatter.comment(comment.lower())
+    ban_time_text = await reformatter.time_to_text()
 
     if user_info is None:
         return_reason = "Ошибка получения информации из ссылки"
@@ -70,10 +71,10 @@ async def ban(
         banner = await moderator_db.get_user_by_id(int(banner_key.strip("МВ")))
     else:
         banner = await moderator_db.get_user_by_id(message.from_id)
-        level = await reformatter.reformat_moderator_id(banner.allowance, "МВ")
+        level = await reformatter.moderator_id(banner.allowance, "МВ")
         banner_key = level + str(banner.key)
 
-    time_unix = await reformatter.reformat_time()
+    time_unix = await reformatter.time()
     try:
         await VKHandler.ban(
             owner_id=user_info.id,
@@ -82,12 +83,12 @@ async def ban(
             comment=f"{full_comment} | {banner_key}",
             comment_visible=True,
         )
-    except:
+    except Exception:
         await message.answer("Ошибка при попытке бана")
         raise
 
     if time_unix is None:
-        ftime = "насвегда"
+        ftime = "навсегда"
     else:
         ftime = f"\nБолеть будет до {strftime('%d.%m.%y %H:%M', localtime(time_unix))}"
 
@@ -117,14 +118,7 @@ async def post(
     ban_time: str,
 ) -> None:
     try:
-        uploaded_photos = []
-        async for photo in async_list_generator(photos):
-            photo_handler = PhotoHandler(photo=photo.sizes)
-            photo = await photo_handler.get_photo()
-            data = await VKHandler.upload_image(photo)
-            uploaded_photos.append(data)
-            del photo  # deletes image from memory after uploading it to VK server
-
+        uploaded_photos = await VKHandler.mass_upload_images(photos)
         reply = (
             f"{user_info.full_name}",
             f"https://vk.com/id{user_info.id}",

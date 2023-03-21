@@ -117,10 +117,10 @@ class DictionaryFuncs:
     async def dict_to_string(
         cls,
         dictionary: dict,
-        prefix: str = " ",
-        postfix: str = "",
+        prefix: str = "-",
+        postfix: str = ">",
         separator: str = ":",
-        indent: int = 0,
+        indent: int = 1,
     ) -> str:
         """
         Convert a dictionary to a pretty string representation.

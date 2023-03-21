@@ -116,9 +116,19 @@ class Database:
         table_name: str,
         condition: Dict[str, Any] = None,
         target: str = "*",
+        join_table: str = None,
+        join_columns: List[str] = None,
     ) -> Dict[str, Any] | None:
         async with aiosqlite.connect(self._db_file) as db:
             query = f"SELECT {target} FROM {table_name}"
+            if join_table and join_columns:
+                join_clause = (
+                    f" INNER JOIN {join_table} ON {table_name}.id={join_table}.id"
+                )
+                query += join_clause
+                target += (
+                    f", {', '.join([f'{join_table}.{col}' for col in join_columns])}"
+                )
             if condition:
                 query += " WHERE " + " AND ".join([f"{k} = ?" for k in condition])
             async with db.execute(
@@ -155,7 +165,7 @@ class Database:
             if order_by:
                 query += f" ORDER BY {order_by}"
             if order_by and order_direction:
-                query += order_direction
+                query += f" {order_direction}"
             async with db.execute(
                 query, tuple(condition.values()) if condition else None
             ) as cursor:

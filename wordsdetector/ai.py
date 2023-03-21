@@ -1,3 +1,5 @@
+from typing import Iterable
+
 import joblib
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -33,12 +35,18 @@ class BadWordsDetector:
 
     async def predict(self, comments: tuple | str) -> tuple | int:
         if isinstance(comments, tuple):
-            return tuple(self.model.predict(comments))
+            return tuple(map(int, self.model.predict(comments)))
         return int(self.model.predict((comments,)))
 
     async def save(self) -> None:
         joblib.dump(self.model, self.model_file)
 
-    async def add_text_data(self, comment, toxic) -> None:
+    async def add_text_data(self, comment: str, toxic: int | float) -> None:
         with open(self.csv_file, "a", encoding="utf-8") as f:
-            f.write("`{}`,{}\n".format(comment, float(toxic)))
+            f.write(f"`{comment}`,{float(toxic)}\n")
+
+    async def add_large_text_data(
+        self, comments: Iterable[str], toxic: int | float
+    ) -> None:
+        with open(self.csv_file, "a", encoding="utf-8") as f:
+            f.write("".join([f"`{comment}`,{float(toxic)}\n" for comment in comments]))

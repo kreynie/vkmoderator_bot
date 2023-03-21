@@ -2,7 +2,7 @@ import asyncio
 from time import time
 from typing import NoReturn
 
-from helpfuncs.vkfunctions import VKHandler
+from helpfuncs import VKHandler
 from loguru import logger
 from vkbottle.user import Message, UserLabeler
 from wordsdetector import AIHandler, AIState, BadWordsDetector

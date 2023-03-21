@@ -137,3 +137,4 @@ formatted.json
 wordsdetector/dataset/words.csv
 wordsdetector/trained/model.joblib
 .vscode/
+creds.json

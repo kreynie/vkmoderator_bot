@@ -28,19 +28,13 @@ async def match_incorrect_ban(message: Message, reason: str = "") -> None:
     if match_moderator_id is None:
         await message.answer("Не удалось найти МВ в тексте поста")
         return
-    moderator_id = match_moderator_id.group(1)
-
+    moderator_id = int(match_moderator_id.group(1))
+    if not await moderator_db.has_user(moderator_id):
+        await message.answer("Модератора нет в действующем списке")
     try:
-        moderator_info = await moderator_db.get_user_by_id(moderator_id)
         sender_info = await moderator_db.get_user_by_id(message.from_id)
         text = f"⚠️ {sender_info.full_name} нашел ошибку в твоем бане. \
             \nКомментарий: {reason}"
-        await message.ctx_api.messages.send(moderator_info.id, 0, message=text)
+        await message.ctx_api.messages.send(moderator_id, 0, message=text)
     except VKAPIError:
         await message.answer("ВК не дал отправить сообщение модератору")
-    except:
-        await message.answer(
-            "Возникла неизвестная ошибка при попытке отправить сообщение модератору\n"
-            "Напиши @volonteersblitz с указанием времени попытки"
-        )
-        raise

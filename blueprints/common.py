@@ -1,4 +1,4 @@
-from helpfuncs.vkfunctions import VKHandler
+from helpfuncs import VKHandler
 from vkbottle.user import Message, UserLabeler
 
 from .rules import CheckPermissions, Groups, Rights

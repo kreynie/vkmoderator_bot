@@ -1,4 +1,4 @@
-from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler
+from helpfuncs import DictionaryFuncs, JSONHandler
 from vkbottle.user import Message, UserLabeler
 
 from .rules import CheckPermissions, Groups, PermissionChecker, Rights
@@ -20,9 +20,7 @@ async def get_abbreviations(message: Message) -> None:
         postfix=">",
         indent=1,
     )
-    await message.answer(
-        message="Список доступных сокращений:\n" + formatted_abbreviations,
-    )
+    await message.answer("Список доступных сокращений:\n" + formatted_abbreviations)
 
 
 @help_labeler.private_message(
@@ -100,7 +98,19 @@ async def moderator_helper(message: Message) -> None:
     text="ЛТсокр",
 )
 async def legal_abbreviations(message: Message) -> None:
-    await message.answer("Пока пирожок на чилле, на жире")
+    abbreviations_dict = JSONHandler("formatted.json").get_data().get("ltabbreviations")
+    games_abbreviations_dict = JSONHandler("formatted.json").get_data().get("games")
+    abbreviations_dict = await DictionaryFuncs.dict_to_string(abbreviations_dict)
+    games_abbreviations_dict = await DictionaryFuncs.dict_to_string(
+        games_abbreviations_dict
+    )
+    result_string = (
+        "Список доступных сокращений:\n"
+        + abbreviations_dict
+        + "\n\nСписок сокращений игр:\n"
+        + games_abbreviations_dict
+    )
+    await message.answer(result_string)
 
 
 @help_labeler.private_message(

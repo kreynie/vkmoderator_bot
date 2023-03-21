@@ -1,6 +1,6 @@
 from config import legal_db, users_db
+from helpfuncs import VKHandler
 from helpfuncs.functions import ReformatHandler
-from helpfuncs.vkfunctions import VKHandler
 from vkbottle.user import Message, UserLabeler
 
 from .rules import CheckPermissions, Groups, Rights
@@ -74,8 +74,8 @@ async def remove_legal(message: Message, user: str) -> None:
     text="ЛТсписок",
 )
 async def list_legal(message: Message) -> None:
-    users = await users_db.get_all("legal")
-    reformatted = await ReformatHandler.reformat_moderator_list(users, "legal")
+    legal = await legal_db.get_all()
+    reformatted = await ReformatHandler.moderator_list(legal, "legal")
     await message.answer(
         f"LT с правами у бота:\n{reformatted}" if reformatted else "Ни у кого нет прав"
     )

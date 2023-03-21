@@ -2,8 +2,8 @@ from asyncio import sleep as asleep
 from random import randint
 
 from config import users_db
+from helpfuncs import VKHandler
 from helpfuncs.functions import async_list_generator
-from helpfuncs.vkfunctions import VKHandler
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 

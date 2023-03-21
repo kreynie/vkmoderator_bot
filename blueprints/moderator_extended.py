@@ -1,7 +1,6 @@
 from config import moderator_db, users_db
+from helpfuncs import DictionaryFuncs, JSONHandler, VKHandler
 from helpfuncs.functions import ReformatHandler
-from helpfuncs.jsonfunctions import DictionaryFuncs, JSONHandler
-from helpfuncs.vkfunctions import VKHandler
 from vkbottle.user import Message, UserLabeler
 
 from .rules import CheckPermissions, Groups, Rights
@@ -58,7 +57,7 @@ async def delete_moderator(message: Message, user: str = None) -> None:
         return
 
     user_info = await VKHandler.get_user_info(user)
-    if user_info == None:
+    if user_info is None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
 
@@ -78,8 +77,8 @@ async def delete_moderator(message: Message, user: str = None) -> None:
     text="Модсписок",
 )
 async def list_moderators(message: Message) -> None:
-    users = await users_db.get_all("moderators")
-    reformatted = await ReformatHandler.reformat_moderator_list(users, "moderators")
+    moderators = await moderator_db.get_all()
+    reformatted = await ReformatHandler.moderator_list(moderators, "moderators")
     await message.answer(
         f"Модераторы с правами у бота:\n{reformatted}"
         if reformatted
