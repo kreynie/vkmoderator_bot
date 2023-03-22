@@ -136,6 +136,8 @@ async def legal_helper(message: Message) -> None:
         "ЛТ https://vk.com/id302266380 буст https://vk.com/wall302266380_4576 бб",
         "⚠️ При указании ссылки по дефолту скриншотится ПОСТ",
         "Если хотите свой скриншот, то просто прикрепите к своему сообщению с командой",
+        "▶️ ЛТ <public> <reason> <game>",
+        "В случае, если нужно заскринить группу, а не конкретный пост",
     ]
     current_permissions = await PermissionChecker.get_user_permissions(
         message.from_id, Groups.LEGAL
