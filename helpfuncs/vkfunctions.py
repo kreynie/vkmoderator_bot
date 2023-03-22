@@ -19,7 +19,7 @@ class VKHandler:
         return await PhotoWallUploader(api).upload(photo)
 
     @staticmethod
-    async def mass_upload_image(
+    async def mass_upload_images(
         photos: List[Union[str, bytes, PhotosPhoto]]
     ) -> List[str | List[dict]]:
         uploaded = []
