@@ -4,6 +4,7 @@ import pyppeteer
 import pyppeteer.errors
 from loguru import logger
 from pyppeteer.element_handle import ElementHandle
+from pyppeteer.page import Page
 
 
 class ScreenSaver:
@@ -35,7 +36,7 @@ class ScreenSaver:
             "quality": self.quality,
         }
 
-    async def preprocess(self, page) -> ElementHandle | None:
+    async def preprocess(self, page: Page) -> ElementHandle | None:
         await page.waitForSelector(".PostHeaderSubtitle__link", timeout=15000)
         await page.click(".PostHeaderSubtitle__link")
         await page.waitForSelector(".wk_wall_post_placeholder")

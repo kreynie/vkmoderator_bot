@@ -1,7 +1,6 @@
 from asyncio import sleep as asleep
-from random import randint
 
-from config import users_db
+from config import moderator_db
 from helpfuncs import VKHandler
 from helpfuncs.functions import async_list_generator
 from vkbottle import VKAPIError
@@ -19,19 +18,20 @@ mailing_labeler.custom_rules["access"] = CheckPermissions
     text="Рассылка <mail>",
 )
 async def mailing(message: Message, mail: str = None) -> None:
-    moderators = await users_db.get_all("moderators")
+    moderators = await moderator_db.get_all()
     failed_mails = []
     await message.answer("Принял, обрабатываю...\nПосле рассылки сообщу результаты")
     await asleep(5)
     async for moderator in async_list_generator(moderators):
+        if moderator.id == message.from_id or moderator.allowance >= 3:
+            continue
+
         try:
-            if moderator.id != message.from_id:
-                await VKHandler.send_message(
-                    user_id=moderator.id,
-                    random_id=randint(0, 10000),
-                    message=mail,
-                )
-                await asleep(5)
+            await VKHandler.send_message(
+                user_id=moderator.id,
+                message=mail,
+            )
+            await asleep(5)
         except VKAPIError:
             failed_mails.append(f"@id{moderator.id} ({moderator.full_name})")
     msg = "Рассылка завершена!"

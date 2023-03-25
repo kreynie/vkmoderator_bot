@@ -103,8 +103,14 @@ class VKHandler:
         return await api.wall.get_comments(owner_id=ban_group_id, sort="desc", **kwargs)
 
     @staticmethod
-    async def send_message(*args, **kwargs) -> int:
-        return await api.messages.send(*args, **kwargs)
+    async def send_message(user_id: int, message: str, *args, **kwargs) -> int:
+        return await api.messages.send(
+            user_id=user_id,
+            message=message,
+            random_id=0,
+            *args,
+            **kwargs,
+        )
 
     @staticmethod
     async def get_short_link(link: str) -> str:

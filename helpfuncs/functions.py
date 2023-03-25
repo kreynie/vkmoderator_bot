@@ -2,7 +2,7 @@ import io
 from asyncio import to_thread
 from re import match
 from time import time
-from typing import AsyncGenerator, List, Literal, Optional
+from typing import Any, AsyncGenerator, List, Literal, Optional
 
 from aiohttp import ClientSession
 from utils.info_classes import StuffInfo
@@ -172,14 +172,14 @@ class PhotoHandler:
         return photo[max_size_index].url
 
     @staticmethod
-    async def screenshot(url: str) -> bytes | None:
+    async def screenshot(url: str, **kwargs) -> bytes | None:
         if not await LinkHandler.check_vk_link(url):
             return None
         if not url.startswith("https://"):
             url = "https://" + url
 
         ss = ScreenSaver(height=2160)
-        return await ss.screenshot(url)
+        return await ss.screenshot(url, **kwargs)
 
 
 class CommentsHandler:
@@ -206,7 +206,7 @@ class LinkHandler:
         return False if result.startswith("id") else True
 
 
-async def async_list_generator(lst: list):
+async def async_list_generator(lst: list[Any]):
     for key in lst:
         yield key
 

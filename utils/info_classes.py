@@ -11,7 +11,7 @@ class UserInfo:
     full_name: Optional[str] = None
     screen_name: Optional[str] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.first_name and self.last_name:
             self.full_name = f"{self.first_name} {self.last_name}"
 

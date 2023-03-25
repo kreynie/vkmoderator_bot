@@ -13,5 +13,8 @@ async def get_user_permlink(message: Message, user: str) -> None:
     if not user:
         await message.answer("Забыл юзера")
 
-    user_info = await VKHandler.get_user_info(user)
-    await message.answer(f"https://vk.com/id{user_info.id}")
+    _, object_info = await VKHandler.get_object_info(user)
+    if object_info is None:
+        await message.answer("Невозможно получить информацию по ссылке")
+        return
+    await message.answer(f"https://vk.com/id{object_info.id}")
