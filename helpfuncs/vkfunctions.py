@@ -38,9 +38,10 @@ class VKHandler:
         if not matched:
             return None
 
+        if fields is None:
+            fields = ["screen_name"]
         if "screen_name" not in fields:
             fields.append("screen_name")
-        fields.append(name_case)
         info = None
         try:
             info = await api.users.get(matched, fields=fields)
@@ -60,6 +61,8 @@ class VKHandler:
         if not await LinkHandler.is_group_link(group):
             return None
 
+        if fields is None:
+            fields = ["screen_name"]
         if "screen_name" not in fields:
             fields.append("screen_name")
         info = None
