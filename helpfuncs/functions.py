@@ -49,12 +49,12 @@ class ReformatHandler:
 
     @staticmethod
     async def legal(
-        type: Literal["abbreviations", "games"],
+        type_: Literal["abbreviations", "games"],
         abbreviation: str,
     ) -> str | None:
-        if type == "games":
+        if type_ == "games":
             return formatted_games.get(abbreviation)
-        if type == "abbreviations":
+        if type_ == "abbreviations":
             return formatted_legal_abbreviations.get(abbreviation)
 
     @staticmethod
@@ -135,7 +135,7 @@ class ReformatHandler:
                     moderator.allowance, prefix_base
                 )
                 r.append(
-                    f"@id{moderator.id}"
+                    f"@id{moderator.id_}"
                     f"({moderator.full_name}) "
                     f"({prefix}{moderator.key})"
                 )

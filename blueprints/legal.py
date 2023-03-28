@@ -40,7 +40,7 @@ async def legal_helper(
         return
 
     reason = await ReformatHandler.legal(
-        type="abbreviations", abbreviation=reason.lower()
+        type_="abbreviations", abbreviation=reason.lower()
     )
     if reason is None:
         await message.answer(
@@ -49,7 +49,7 @@ async def legal_helper(
         )
         return
 
-    game = await ReformatHandler.legal(type="games", abbreviation=game.lower())
+    game = await ReformatHandler.legal(type_="games", abbreviation=game.lower())
     if game is None:
         await message.answer(
             "Не удалось расшифровать игру. "
@@ -89,7 +89,7 @@ async def legal_helper(
     photo_link = await PhotoHandler.get_photo_max_size_url(photo_data.sizes)
     short_screenshot_link = await VKHandler.get_short_link(photo_link)
     violator_link = "https://vk.com/" + ("club" if is_group else "id")
-    original_violator_link = f"{violator_link}{violator.id}"
+    original_violator_link = f"{violator_link}{violator.id_}"
     violator_screen_name = f"https://vk.com/{violator.screen_name}"
 
     formatted_row = await ReformatHandler.sheets_row(

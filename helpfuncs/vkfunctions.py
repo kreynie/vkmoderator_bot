@@ -38,11 +38,13 @@ class VKHandler:
         if not matched:
             return None
 
-        if fields is None:
-            fields = ["screen_name"]
+        if "screen_name" not in fields:
+            fields.append("screen_name")
         fields.append(name_case)
-        info = await api.users.get(matched, fields=fields)
-        if not info:
+        info = None
+        try:
+            info = await api.users.get(matched, fields=fields)
+        except VKAPIError[100]:
             return None
 
         return UserInfo(**info[0].dict())
@@ -58,10 +60,12 @@ class VKHandler:
         if not await LinkHandler.is_group_link(group):
             return None
 
-        if fields is not None:
-            fields.update({"fields": "screen_name"})
-        info = await api.groups.get_by_id(group_id=matched, fields=fields)
-        if not info:
+        if "screen_name" not in fields:
+            fields.append("screen_name")
+        info = None
+        try:
+            info = await api.groups.get_by_id(group_id=matched, fields=fields)
+        except VKAPIError[100]:
             return None
 
         return GroupInfo(**info[0].dict())
@@ -75,7 +79,7 @@ class VKHandler:
         """
         is_group = await VKHandler.get_group_info(url)
         is_user = await VKHandler.get_user_info(url)
-        return bool(is_group), is_group if is_group else is_user
+        return bool(is_group), is_group or is_user
 
     @staticmethod
     async def ban(*args, **kwargs) -> int:

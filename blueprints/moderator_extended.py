@@ -21,10 +21,10 @@ async def add_moderator(
     user: str = None,
     key: int = None,
 ) -> None:
-    if not user:
+    if user is None:
         await message.answer("Забыл ссылку на страницу!")
         return
-    if not key:
+    if key is None:
         await message.answer("Забыл МВ")
         return
 
@@ -33,14 +33,16 @@ async def add_moderator(
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
 
-    if await moderator_db.has_user(user_info.id):
+    if await moderator_db.has_user(user_info.id_):
         await message.answer("Пользователь уже есть в списке")
         return
 
-    if not await users_db.has_user(user_info.id):
-        await users_db.add_user(user_info.id, user_info.first_name, user_info.last_name)
+    if not await users_db.has_user(user_info.id_):
+        await users_db.add_user(
+            user_info.id_, user_info.first_name, user_info.last_name
+        )
 
-    code = await moderator_db.add_user(user_info.id, key, 1)
+    code = await moderator_db.add_user(user_info.id_, key, 1)
     if code:
         await message.answer("Добавлен")
     else:
@@ -61,11 +63,11 @@ async def delete_moderator(message: Message, user: str = None) -> None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
 
-    if not await moderator_db.has_user(user_info.id):
+    if not await moderator_db.has_user(user_info.id_):
         await message.answer("Пользователя нет в списке")
         return
 
-    code = await moderator_db.remove_user(user_info.id)
+    code = await moderator_db.remove_user(user_info.id_)
     if code:
         await message.answer("Удален")
     else:
