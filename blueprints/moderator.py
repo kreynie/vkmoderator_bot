@@ -33,7 +33,7 @@ async def ban(
     return_reason = None
 
     user_info = await VKHandler.get_user_info(user)
-    already_banned = await VKHandler.check_if_banned(user_info.id_)
+    already_banned = await VKHandler.check_if_banned(user_info.id)
     if already_banned:
         await message.answer("Пользователь уже забанен в группе")
         return
@@ -77,7 +77,7 @@ async def ban(
     time_unix = await reformatter.time()
     try:
         await VKHandler.ban(
-            owner_id=user_info.id_,
+            owner_id=user_info.id,
             end_date=time_unix,
             reason=0,
             comment=f"{full_comment} | {banner_key}",
@@ -98,7 +98,7 @@ async def ban(
         await post(
             message=message,
             photos=photos,
-            banner_id=banner.id_,
+            banner_id=banner.id,
             banner_key=banner_key,
             user_info=user_info,
             comment=comment,
@@ -121,7 +121,7 @@ async def post(
         uploaded_photos = await VKHandler.mass_upload_images(photos)
         reply = (
             f"{user_info.full_name}",
-            f"https://vk.com/id{user_info.id_}",
+            f"https://vk.com/id{user_info.id}",
             f"{comment} - {ban_time}",
             f"@id{banner_id}({banner_key})\n",
         )

@@ -25,9 +25,9 @@ async def change_rights(message: Message, user: str, group: str, value: int) -> 
 
     match group:
         case "mod":
-            code = await moderator_db.edit_user_allowance(user_info.id_, value)
+            code = await moderator_db.edit_user_allowance(user_info.id, value)
         case "legal":
-            code = await legal_db.edit_user_allowance(user_info.id_, value)
+            code = await legal_db.edit_user_allowance(user_info.id, value)
         case _:
             await message.answer('use "mod" or "legal" group')
             return

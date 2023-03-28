@@ -17,4 +17,4 @@ async def get_user_permlink(message: Message, user: str) -> None:
     if user_info is None:
         await message.answer("Невозможно получить информацию по ссылке")
         return
-    await message.answer(f"https://vk.com/id{user_info.id_}")
+    await message.answer(f"https://vk.com/id{user_info.id}")

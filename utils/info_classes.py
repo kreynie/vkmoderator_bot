@@ -5,7 +5,7 @@ from pydantic.dataclasses import dataclass
 
 @dataclass
 class UserInfo:
-    id_: int
+    id: int
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     full_name: Optional[str] = None
@@ -24,5 +24,5 @@ class StuffInfo(UserInfo):
 
 @dataclass
 class GroupInfo:
-    id_: int
+    id: int
     screen_name: Optional[str] = None

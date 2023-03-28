@@ -89,7 +89,7 @@ async def legal_helper(
     photo_link = await PhotoHandler.get_photo_max_size_url(photo_data.sizes)
     short_screenshot_link = await VKHandler.get_short_link(photo_link)
     violator_link = "https://vk.com/" + ("club" if is_group else "id")
-    original_violator_link = f"{violator_link}{violator.id_}"
+    original_violator_link = f"{violator_link}{violator.id}"
     violator_screen_name = f"https://vk.com/{violator.screen_name}"
 
     formatted_row = await ReformatHandler.sheets_row(

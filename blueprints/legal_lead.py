@@ -26,18 +26,18 @@ async def add_legal(message: Message, user: str, legal_id: int) -> None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
 
-    if await legal_db.has_user(user_info.id_):
+    if await legal_db.has_user(user_info.id):
         await message.answer("Уже есть в списке")
         return
 
-    if not await users_db.has_user(user_info.id_):
+    if not await users_db.has_user(user_info.id):
         await users_db.add_user(
-            user_info.id_,
+            user_info.id,
             user_info.first_name,
             user_info.last_name,
         )
 
-    code = await legal_db.add_user(user_info.id_, legal_id, 1)
+    code = await legal_db.add_user(user_info.id, legal_id, 1)
     if code:
         await message.answer("Добавлен")
     else:
@@ -58,11 +58,11 @@ async def remove_legal(message: Message, user: str) -> None:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
         return
 
-    if not await legal_db.has_user(user_info.id_):
+    if not await legal_db.has_user(user_info.id):
         await message.answer("Пользователя нет в списке")
         return
 
-    code = await legal_db.remove_user(user_info.id_)
+    code = await legal_db.remove_user(user_info.id)
     if code:
         await message.answer("Пользователь исключен из списка")
     else:

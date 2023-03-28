@@ -135,7 +135,7 @@ class ReformatHandler:
                     moderator.allowance, prefix_base
                 )
                 r.append(
-                    f"@id{moderator.id_}"
+                    f"@id{moderator.id}"
                     f"({moderator.full_name}) "
                     f"({prefix}{moderator.key})"
                 )
