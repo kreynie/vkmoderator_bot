@@ -80,8 +80,10 @@ class VKHandler:
         :param url: url to get object info
         :return: is_group boolean, object info or None
         """
+        is_user = None
         is_group = await VKHandler.get_group_info(url)
-        is_user = await VKHandler.get_user_info(url)
+        if is_group is None:
+            is_user = await VKHandler.get_user_info(url)
         return bool(is_group), is_group or is_user
 
     @staticmethod
