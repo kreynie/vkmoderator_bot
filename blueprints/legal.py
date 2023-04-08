@@ -19,7 +19,6 @@ lt_labeler.custom_rules["access"] = CheckPermissions
         "ЛТ <violator_link> <reason> <violation_link> <game> <flea:int>",
         "ЛТ <violator_link> <reason> <violation_link> <game> <dialog_time>",
         "ЛТ <violator_link> <reason> <violation_link> <game>",
-        "ЛТ <violator_link> <reason> <game>",
     ],
 )
 async def legal_helper(
@@ -49,8 +48,8 @@ async def legal_helper(
         )
         return
 
-    game = await ReformatHandler.legal(type_="games", abbreviation=game.lower())
-    if game is None:
+    game_full = await ReformatHandler.legal(type_="games", abbreviation=game.lower())
+    if game_full is None:
         await message.answer(
             "Не удалось расшифровать игру. "
             + "Доступные: \n"
@@ -99,7 +98,7 @@ async def legal_helper(
         reason=reason,
         violation_link=violation_link,
         screenshot_link=short_screenshot_link,
-        game=game,
+        game=game_full,
         moderator_key=str(moderator.key),
         flea=flea,
         dialog_time=dialog_time,
