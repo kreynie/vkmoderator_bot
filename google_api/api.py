@@ -47,35 +47,6 @@ class GoogleSheetAPI:
     def _refactor_range(self, list_range: str, last_row: int, left_column: str) -> str:
         return f"{list_range[:-3]}{left_column}{last_row}:{list_range[-1]}{last_row}"
 
-    async def append(self, list_range: str, *args) -> OkResponse:
-        data = []
-        for arg in args:
-            try:
-                iter(arg)
-            except TypeError:
-                data.append(arg)
-            else:
-                data.extend(arg)
-        async with self.session:
-            request = (
-                self.service.spreadsheets()
-                .values()
-                .append(
-                    spreadsheetId=self.spreadsheet_id,
-                    range=list_range,
-                    valueInputOption="USER_ENTERED",
-                    body={"values": [data]},
-                )
-            )
-            response = await asyncio.to_thread(request.execute)
-        return OkResponse(
-            spreadsheet_id=response.get("spreadsheetId"),
-            updated_cells=response.get("updatedCells"),
-            updated_columns=response.get("updatedColumns"),
-            updated_range=response.get("updatedRange"),
-            updated_rows=response.get("updatedRows"),
-        )
-
     async def update(self, list_range: str, row: str | list[Any]) -> OkResponse:
         if isinstance(row, str):
             row = [row]
