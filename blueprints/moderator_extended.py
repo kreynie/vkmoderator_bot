@@ -5,14 +5,14 @@ from vkbottle.user import Message, UserLabeler
 
 from .rules import CheckPermissions, Groups, Rights
 
-moderext_labeler = UserLabeler()
-moderext_labeler.vbml_ignore_case = True
-moderext_labeler.custom_rules["access"] = CheckPermissions
+moderator_extended_labeler = UserLabeler()
+moderator_extended_labeler.vbml_ignore_case = True
+moderator_extended_labeler.custom_rules["access"] = CheckPermissions
 
 formatted_json = JSONHandler("formatted.json")
 
 
-@moderext_labeler.private_message(
+@moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="Добмод <user> <key:int>",
 )
@@ -47,7 +47,7 @@ async def add_moderator(
         await message.answer("Что-то пошло не так")
 
 
-@moderext_labeler.private_message(
+@moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="Удалмод <user>",
 )
@@ -72,7 +72,7 @@ async def delete_moderator(message: Message, user: str = None) -> None:
         await message.answer("Что-то пошло не так")
 
 
-@moderext_labeler.private_message(
+@moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="Модсписок",
 )
@@ -86,7 +86,7 @@ async def list_moderators(message: Message) -> None:
     )
 
 
-@moderext_labeler.private_message(
+@moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="Добсокр <abbreviation> <full_text>",
 )
@@ -113,7 +113,7 @@ async def add_abbreviation(
             await message.answer(f"Сокращение «{abbreviation}» уже есть в списке")
 
 
-@moderext_labeler.private_message(
+@moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="Измсокр <abbreviation> <full_text>",
 )
@@ -142,7 +142,7 @@ async def edit_abbreviation(
             await message.answer(f"Что-то пошло не так. Код ошибки: {result}")
 
 
-@moderext_labeler.private_message(
+@moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
     text="Удалсокр <abbreviation>",
 )

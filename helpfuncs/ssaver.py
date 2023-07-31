@@ -7,6 +7,14 @@ from pyppeteer.element_handle import ElementHandle
 from pyppeteer.page import Page
 
 
+async def preprocess(page: Page) -> ElementHandle | None:
+    await page.waitForSelector(".PostHeaderSubtitle__link", timeout=15000)
+    await page.click(".PostHeaderSubtitle__link")
+    await page.waitForSelector(".wk_wall_post_placeholder")
+    await page.waitForSelector("#wk_content")
+    return await page.querySelector("#wk_content")
+
+
 class ScreenSaver:
     def __init__(
         self,
@@ -14,14 +22,14 @@ class ScreenSaver:
         height: int = 600,
         do_clip: bool = False,
         clip: Dict[Literal["x", "y", "width", "height"], int] = None,
-        type: Literal["png", "jpeg"] = "jpeg",
+        type_: Literal["png", "jpeg"] = "jpeg",
         quality: int = 100,
     ) -> None:
         self.width = width
         self.height = height
         self.do_clip = do_clip
         self.clip = clip
-        self.type = type
+        self.type = type_
         self.quality = quality
         if self.clip is None:
             self.clip = {
@@ -35,13 +43,6 @@ class ScreenSaver:
             "type": self.type,
             "quality": self.quality,
         }
-
-    async def preprocess(self, page: Page) -> ElementHandle | None:
-        await page.waitForSelector(".PostHeaderSubtitle__link", timeout=15000)
-        await page.click(".PostHeaderSubtitle__link")
-        await page.waitForSelector(".wk_wall_post_placeholder")
-        await page.waitForSelector("#wk_content")
-        return await page.querySelector("#wk_content")
 
     async def screenshot(
         self,
@@ -62,7 +63,7 @@ class ScreenSaver:
                 self.options = self.options | options
             element = None
             if options.get("wallpost", False):
-                element = await self.preprocess(page)
+                element = await preprocess(page)
             if element is not None:
                 sizes = await element.boundingBox()
                 sizes["width"] = (

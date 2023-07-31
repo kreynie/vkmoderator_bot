@@ -8,10 +8,14 @@ from googleapiclient.discovery import build
 from .responses import OkResponse
 
 
+def _refactor_range(list_range: str, last_row: int, left_column: str) -> str:
+    return f"{list_range[:-3]}{left_column}{last_row}:{list_range[-1]}{last_row}"
+
+
 class GoogleSheetAPI:
     def __init__(self, credentials_file, spreadsheet_id) -> None:
-        self.creds = Credentials.from_service_account_file(credentials_file)
-        self.service = build("sheets", "v4", credentials=self.creds)
+        self.credentials = Credentials.from_service_account_file(credentials_file)
+        self.service = build("sheets", "v4", credentials=self.credentials)
         self.spreadsheet_id = spreadsheet_id
         self.session = aiohttp.ClientSession()
 
@@ -41,11 +45,13 @@ class GoogleSheetAPI:
         for row_id, row in enumerate(spreadsheet):
             last_row = row_id + 1
             if len(row) <= 2:
-                return self._refactor_range(list_range, last_row, left_column)
-        return self._refactor_range(list_range, last_row, left_column)
+                return _refactor_range(list_range, last_row, left_column)
+        return _refactor_range(list_range, last_row, left_column)
 
-    def _refactor_range(self, list_range: str, last_row: int, left_column: str) -> str:
-        return f"{list_range[:-3]}{left_column}{last_row}:{list_range[-1]}{last_row}"
+    async def check_repeats(
+        self, value: str, upper_range: str, bottom_range: str
+    ) -> bool:
+        ...
 
     async def update(self, list_range: str, row: str | list[Any]) -> OkResponse:
         if isinstance(row, str):

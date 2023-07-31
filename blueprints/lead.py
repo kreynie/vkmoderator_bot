@@ -33,8 +33,7 @@ async def match_incorrect_ban(message: Message, reason: str = "") -> None:
         await message.answer("Модератора нет в действующем списке")
     try:
         sender_info = await moderator_db.get_user_by_id(message.from_id)
-        text = f"⚠️ {sender_info.full_name} нашел ошибку в твоем бане. \
-            \nКомментарий: {reason}"
+        text = f"⚠️ {sender_info.full_name} нашел ошибку в твоем бане. \nКомментарий: {reason}"
         await message.ctx_api.messages.send(moderator_id, 0, message=text)
     except VKAPIError:
         await message.answer("ВК не дал отправить сообщение модератору")

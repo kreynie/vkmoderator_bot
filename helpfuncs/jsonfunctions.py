@@ -1,5 +1,5 @@
 import json
-from typing import Any, Literal, Tuple
+from typing import Any, Literal
 
 
 class JSONHandler:
@@ -72,7 +72,7 @@ class DictionaryFuncs:
     @classmethod
     async def edit_value(
         cls, dictionary: dict, target_key: str, new_value: Any
-    ) -> tuple((str, dict)):
+    ) -> tuple[str, dict]:
         """
         Edit the value of an existing key in a nested dictionary.
         Example:
@@ -93,7 +93,7 @@ class DictionaryFuncs:
         return "success", current_dict
 
     @classmethod
-    async def remove_key(cls, dictionary: dict, target_key: str) -> Tuple[str, dict]:
+    async def remove_key(cls, dictionary: dict, target_key: str) -> tuple[str, dict]:
         """
         Remove an existing key in a nested dictionary.
         Example:

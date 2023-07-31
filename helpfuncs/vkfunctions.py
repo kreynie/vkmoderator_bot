@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Tuple, Union
+from typing import Literal, Optional
 
 from config import api, ban_group_id, ban_reason_group_id
 from utils.info_classes import GroupInfo, UserInfo
@@ -12,16 +12,16 @@ from .functions import LinkHandler, PhotoHandler, async_list_generator, get_id_f
 
 class VKHandler:
     @staticmethod
-    async def upload_image(photo: Union[str, bytes, PhotosPhoto]) -> str | List[dict]:
+    async def upload_image(photo: str | bytes | PhotosPhoto) -> str | list[dict]:
         if isinstance(photo, PhotosPhoto):
             photo_handler = PhotoHandler(photo=photo.sizes)
             photo = await photo_handler.get_photo()
         return await PhotoWallUploader(api).upload(photo)
 
     @staticmethod
-    async def mass_upload_images(
-        photos: List[Union[str, bytes, PhotosPhoto]]
-    ) -> List[str | List[dict]]:
+    async def upload_images(
+        photos: list[str | bytes | PhotosPhoto],
+    ) -> list[str | list[dict]]:
         uploaded = []
         async for photo in async_list_generator(photos):
             data = await VKHandler.upload_image(photo)
@@ -32,7 +32,7 @@ class VKHandler:
     async def get_user_info(
         user: str,
         name_case: Optional[Literal["nom", "gen", "dat", "acc", "ins", "abl"]] = None,
-        fields: Optional[List[str]] = None,
+        fields: Optional[list[str]] = None,
     ) -> UserInfo | None:
         matched = await get_id_from_text(user)
         if not matched:
@@ -42,17 +42,16 @@ class VKHandler:
             fields = ["screen_name"]
         if "screen_name" not in fields:
             fields.append("screen_name")
-        info = None
         try:
-            info = await api.users.get(matched, fields=fields)
-        except VKAPIError[100]:
+            info = await api.users.get(matched, fields, name_case)
+        except VKAPIError:
             return None
 
         return UserInfo(**info[0].dict())
 
     @staticmethod
     async def get_group_info(
-        group: str, fields: Optional[List[str]] = None
+        group: str, fields: Optional[list[str]] = None
     ) -> GroupInfo | None:
         matched = await get_id_from_text(group)
         if not matched:
@@ -65,17 +64,16 @@ class VKHandler:
             fields = ["screen_name"]
         if "screen_name" not in fields:
             fields.append("screen_name")
-        info = None
         try:
             info = await api.groups.get_by_id(group_id=matched, fields=fields)
-        except VKAPIError[100]:
+        except VKAPIError:
             return None
 
         return GroupInfo(**info[0].dict())
 
     @staticmethod
-    async def get_object_info(url: str) -> Tuple[(bool, GroupInfo | UserInfo | None)]:
-        """Returns an onject info from a given url
+    async def get_object_info(url: str) -> tuple[bool, None | GroupInfo | UserInfo]:
+        """Returns an object info from a given url
 
         :param url: url to get object info
         :return: is_group boolean, object info or None
@@ -127,14 +125,14 @@ class VKHandler:
         return result.short_url
 
     @staticmethod
-    async def get_short_links(links: list[str]) -> List[str]:
+    async def get_short_links(links: list[str]) -> list[str]:
         return [await VKHandler.get_short_link(link) for link in links]
 
     @staticmethod
     async def get_photos(photos: str | list) -> list:
         """Returns photos data from VK
 
-        :param photos: each photo should be in next format: "photo<owner>_<photo_id>_<access_key>"
+        :param photos: each photo should be in format "photo<owner>_<photo_id>_<access_key>"
         """
         if isinstance(photos, str):
             photos = [photos.removeprefix("photo")]

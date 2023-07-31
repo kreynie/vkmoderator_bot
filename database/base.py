@@ -1,5 +1,5 @@
 import sqlite3
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
 
 import aiosqlite
 
@@ -45,7 +45,7 @@ class Database:
         self,
         table_name: str,
         trigger_name: str,
-        conditions: Dict[str, str],
+        conditions: dict[str, str],
         action: str,
         event: bool = True,
     ) -> None:
@@ -79,7 +79,7 @@ class Database:
             db.execute(sql_query)
             db.commit()
 
-    async def add_values(self, table_name: str, values: Dict[str, Any]) -> int:
+    async def add_values(self, table_name: str, values: dict[str, Any]) -> int:
         async with aiosqlite.connect(self._db_file) as db:
             placeholders = ", ".join("?" for _ in values.values())
             columns = ", ".join(values.keys())
@@ -88,7 +88,7 @@ class Database:
             await db.commit()
             return result.rowcount
 
-    async def remove_values(self, table_name: str, conditions: Dict[str, Any]) -> int:
+    async def remove_values(self, table_name: str, conditions: dict[str, Any]) -> int:
         async with aiosqlite.connect(self._db_file) as db:
             query = f"DELETE FROM {table_name} WHERE {', '.join(f'{k} = ?' for k in conditions)}"
             values = tuple(conditions.values())
@@ -99,8 +99,8 @@ class Database:
     async def edit_values(
         self,
         table_name: str,
-        condition: Dict[str, Any],
-        update_values: Dict[str, Any],
+        condition: dict[str, Any],
+        update_values: dict[str, Any],
     ) -> int:
         async with aiosqlite.connect(self._db_file) as db:
             set_clause = ", ".join([f"{col} = ?" for col in update_values.keys()])
@@ -114,11 +114,11 @@ class Database:
     async def get_item(
         self,
         table_name: str,
-        condition: Dict[str, Any] = None,
+        condition: dict[str, Any] = None,
         target: str = "*",
         join_table: str = None,
-        join_columns: List[str] = None,
-    ) -> Dict[str, Any] | None:
+        join_columns: list[str] = None,
+    ) -> dict[str, Any] | None:
         async with aiosqlite.connect(self._db_file) as db:
             query = f"SELECT {target} FROM {table_name}"
             if join_table and join_columns:
@@ -143,13 +143,13 @@ class Database:
     async def get_items(
         self,
         table_name: str,
-        condition: Dict[str, Any] = None,
+        condition: dict[str, Any] = None,
         target: str = "*",
         order_by: str = None,
         order_direction: Literal["ASC", "DESC"] = None,
         join_table: str = None,
-        join_columns: List[str] = None,
-    ) -> List[Dict[str, Any]] | None:
+        join_columns: list[str] = None,
+    ) -> list[dict[str, Any]] | None:
         async with aiosqlite.connect(self._db_file) as db:
             query = f"SELECT {target} FROM {table_name}"
             if join_table and join_columns:

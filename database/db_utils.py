@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Literal, Optional
 
 from typing_extensions import override
 from utils.info_classes import StuffInfo, UserInfo
@@ -8,8 +8,8 @@ from .base import Database
 
 class BaseTable(Database):
     TABLE_NAME: str
-    COLUMNS: Dict[str, str]
-    TRIGGERS: List[Tuple[str, Dict[str, str], str]] | None = None
+    COLUMNS: dict[str, str]
+    TRIGGERS: list[tuple[str, dict[str, str], str]] | None = None
 
     def __init__(self, db_file: str) -> None:
         super().__init__(db_file=db_file)
@@ -21,8 +21,8 @@ class BaseTable(Database):
     async def get_user_by_id(
         self,
         user_id: int,
-        group: Optional[Literal["users", "moderators", "legal"]] = None,
-    ) -> Dict[str, Any] | None:
+        group: Optional[str, Literal["users", "moderators", "legal"]] = None,
+    ) -> dict[str, Any] | None:
         return await self.get_item(self.TABLE_NAME, {"id": user_id}, join_table=group)
 
     async def add_user(self, user_id: int, key: int, allowance: int) -> bool:
@@ -71,9 +71,7 @@ class StuffTable(BaseTable):
             return None
         return StuffInfo(**stuff)
 
-    async def get_all(
-        self,
-    ) -> List[StuffInfo] | None:
+    async def get_all(self) -> list[StuffInfo] | None:
         stuff = await self.get_items(
             self.TABLE_NAME,
             target=f"{UsersTable.TABLE_NAME}.id, {UsersTable.TABLE_NAME}.first_name, \
@@ -95,11 +93,10 @@ class StuffTable(BaseTable):
         return allowance.get("allowance") if allowance else 0
 
 
-class _DeleteTriggerLogic:
-    BASE_TRIGGER = (
-        {"moderators": "id = OLD.id", "legal": "id = OLD.id"},
-        "DELETE FROM users WHERE id = OLD.id",
-    )
+BASE_DELETING_TRIGGER = (
+    {"moderators": "id = OLD.id", "legal": "id = OLD.id"},
+    "DELETE FROM users WHERE id = OLD.id",
+)
 
 
 class ModeratorTable(StuffTable):
@@ -111,7 +108,7 @@ class ModeratorTable(StuffTable):
         "FOREIGN KEY (id)": "REFERENCES users(id)",
     }
 
-    TRIGGERS = [("delete_user_moderator", *_DeleteTriggerLogic.BASE_TRIGGER)]
+    TRIGGERS = [("delete_user_moderator", *BASE_DELETING_TRIGGER)]
 
 
 class LegalTable(StuffTable):
@@ -123,4 +120,4 @@ class LegalTable(StuffTable):
         "FOREIGN KEY (id)": "REFERENCES users(id)",
     }
 
-    TRIGGERS = [("delete_user_legal", *_DeleteTriggerLogic.BASE_TRIGGER)]
+    TRIGGERS = [("delete_user_legal", *BASE_DELETING_TRIGGER)]

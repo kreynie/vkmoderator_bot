@@ -53,5 +53,5 @@ logger.add(
     level="DEBUG" if DEBUG else "INFO",
     rotation="00:00",
     retention=1,
-    compression=zip,
+    compression="zip",
 )

@@ -7,12 +7,12 @@ from .legal import lt_labeler
 from .legal_lead import ltl_labeler
 from .mailing import mailing_labeler
 from .moderator import moderator_labeler
-from .moderator_extended import moderext_labeler
+from .moderator_extended import moderator_extended_labeler
 
 labelers = [
     admin_labeler,
     lead_labeler,
-    moderext_labeler,
+    moderator_extended_labeler,
     moderator_labeler,
     help_labeler,
     mailing_labeler,

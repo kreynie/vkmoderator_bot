@@ -20,7 +20,7 @@ moderator_labeler.custom_rules["access"] = CheckPermissions
     text=[
         "Бан <user> <comment> <ban_time> <banner_key>",
         "Бан <user> <comment> <ban_time>",
-        "Бан <user> <comment>",  # TODO: сделать время необязательным параметром, к каждому нарушению дефолтное время
+        "Бан <user> <comment>",
     ],
 )
 async def ban(
@@ -118,7 +118,7 @@ async def post(
     ban_time: str,
 ) -> None:
     try:
-        uploaded_photos = await VKHandler.mass_upload_images(photos)
+        uploaded_photos = await VKHandler.upload_images(photos)
         reply = (
             f"{user_info.full_name}",
             f"https://vk.com/id{user_info.id}",

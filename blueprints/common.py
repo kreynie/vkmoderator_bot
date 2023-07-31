@@ -9,7 +9,7 @@ common_labeler.custom_rules["access"] = CheckPermissions
 
 
 @common_labeler.private_message(access=[Groups.ANY, Rights.LOW], text="пермлинк <user>")
-async def get_user_permlink(message: Message, user: str) -> None:
+async def get_user_permanent_link(message: Message, user: str) -> None:
     if not user:
         await message.answer("Забыл юзера")
 

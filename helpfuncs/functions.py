@@ -2,7 +2,7 @@ import io
 from asyncio import to_thread
 from re import match
 from time import time
-from typing import Any, AsyncGenerator, List, Literal, Optional
+from typing import Any, Generator, List, Literal, Optional
 
 from aiohttp import ClientSession
 from utils.info_classes import StuffInfo
@@ -178,13 +178,12 @@ class PhotoHandler:
         if not url.startswith("https://"):
             url = "https://" + url
 
-        ss = ScreenSaver(height=2160)
-        return await ss.screenshot(url, **kwargs)
+        return await ScreenSaver(height=2160).screenshot(url, **kwargs)
 
 
 class CommentsHandler:
     @staticmethod
-    async def get_data_from_comments(comments) -> AsyncGenerator:
+    def get_data_from_comments(comments) -> Generator:
         for x in comments.items:
             if x.from_id != 0:
                 yield {"id": x.id, "from_id": x.from_id, "text": x.text}
@@ -193,7 +192,7 @@ class CommentsHandler:
 class LinkHandler:
     @staticmethod
     async def check_vk_link(url: str, slug: bool = False) -> str | None:
-        matched_link = match(r".*vk\.com\/(.*)", url)
+        matched_link = match(r".*vk\.com/(.*)", url)
         if matched_link is None:
             return None
         if slug:
@@ -217,9 +216,10 @@ async def get_id_from_text(user: str) -> str | None:
     if matched_link is None:
         matched_mention = match(r"\[id(.+?)\|", user)
 
-    if all(x is None for x in (matched_mention, matched_link)):
+    if matched_mention is None and matched_link is None:
         return None
 
+    matched = None
     if matched_link:
         matched = matched_link
         if matched.startswith("id"):
@@ -227,7 +227,7 @@ async def get_id_from_text(user: str) -> str | None:
         if matched.startswith("public"):
             matched = matched.strip("public")
 
-    if matched_mention:
+    elif matched_mention:
         matched = matched_mention.group(1)
 
     return matched
