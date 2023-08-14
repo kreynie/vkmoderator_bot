@@ -21,7 +21,7 @@ class BaseTable(Database):
     async def get_user_by_id(
         self,
         user_id: int,
-        group: Optional[str, Literal["users", "moderators", "legal"]] = None,
+        group: Optional[Literal["users", "moderators", "legal"]] = None,
     ) -> dict[str, Any] | None:
         return await self.get_item(self.TABLE_NAME, {"id": user_id}, join_table=group)
 
