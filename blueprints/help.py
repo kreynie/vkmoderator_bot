@@ -132,10 +132,7 @@ async def legal_helper(message: Message) -> None:
         "--> dialog_time - время пересылки диалога Троллю",
         "▶️ Пример:",
         "ЛТ https://vk.com/id302266380 буст https://vk.com/wall302266380_4576 бб",
-        "⚠️ При указании ссылки по дефолту скриншотится ПОСТ",
-        "Если хотите свой скриншот, то просто прикрепите к своему сообщению с командой",
-        "▶️ ЛТ <public> <reason> <game>",
-        "В случае, если нужно заскринить группу, а не конкретный пост",
+        "Вместе с командой не забудьте прикрепить к сообщению скриншот (-ы)"
     ]
     current_permissions = await PermissionChecker.get_user_permissions(
         message.from_id, Groups.LEGAL

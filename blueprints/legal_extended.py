@@ -11,7 +11,7 @@ ltl_labeler.custom_rules["access"] = CheckPermissions
 
 
 @ltl_labeler.private_message(
-    access=[Groups.LEGAL, Rights.LEAD],
+    access=[Groups.LEGAL, Rights.MIDDLE],
     text="ДобЛТ <user> <legal_id:int>",
 )
 async def add_legal(message: Message, user: str, legal_id: int) -> None:
@@ -45,7 +45,7 @@ async def add_legal(message: Message, user: str, legal_id: int) -> None:
 
 
 @ltl_labeler.private_message(
-    access=[Groups.LEGAL, Rights.LEAD],
+    access=[Groups.LEGAL, Rights.MIDDLE],
     text="УдалЛТ <user>",
 )
 async def remove_legal(message: Message, user: str) -> None:
@@ -70,7 +70,7 @@ async def remove_legal(message: Message, user: str) -> None:
 
 
 @ltl_labeler.private_message(
-    access=[Groups.LEGAL, Rights.LEAD],
+    access=[Groups.LEGAL, Rights.MIDDLE],
     text="ЛТсписок",
 )
 async def list_legal(message: Message) -> None:
