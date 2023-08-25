@@ -212,22 +212,14 @@ async def async_list_generator(lst: list[Any]):
 
 async def get_id_from_text(user: str) -> str | None:
     matched_mention = None
-    matched_link = await LinkHandler.check_vk_link(user, slug=True)
-    if matched_link is None:
+    matched = await LinkHandler.check_vk_link(user, slug=True)
+    if matched is None:
         matched_mention = match(r"\[id(.+?)\|", user)
 
-    if matched_mention is None and matched_link is None:
+    if matched_mention is None and matched is None:
         return None
 
-    matched = None
-    if matched_link:
-        matched = matched_link
-        if matched.startswith("id"):
-            matched = matched.strip("id")
-        if matched.startswith("public"):
-            matched = matched.strip("public")
-
-    elif matched_mention:
+    if matched_mention:
         matched = matched_mention.group(1)
 
     return matched
