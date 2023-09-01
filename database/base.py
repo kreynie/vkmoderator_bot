@@ -161,7 +161,7 @@ class Database:
                     f", {', '.join([f'{join_table}.{col}' for col in join_columns])}"
                 )
             if condition:
-                query += " WHERE " + " AND ".join([f"{k} = ?" for k in condition])
+                query += " WHERE " + " AND ".join([f"{k} ?" for k in condition])
             if order_by:
                 query += f" ORDER BY {order_by}"
             if order_by and order_direction:

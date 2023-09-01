@@ -71,14 +71,24 @@ class StuffTable(BaseTable):
             return None
         return StuffInfo(**stuff)
 
-    async def get_all(self) -> list[StuffInfo] | None:
+    async def get_all(
+        self,
+        *,
+        condition: Optional[dict[str]] = None,
+        order_by: Optional[str] = None,
+        order_direction: Literal["ASC", "DESC"] = None,
+    ) -> list[StuffInfo] | None:
+        if not order_by:
+            order_by = f"{self.TABLE_NAME}.key"
         stuff = await self.get_items(
             self.TABLE_NAME,
+            condition=condition,
             target=f"{UsersTable.TABLE_NAME}.id, {UsersTable.TABLE_NAME}.first_name, \
                 {UsersTable.TABLE_NAME}.last_name, {self.TABLE_NAME}.key, {self.TABLE_NAME}.allowance",
+            order_by=order_by,
+            order_direction=order_direction,
             join_table=UsersTable.TABLE_NAME,
             join_columns=["id", "first_name", "last_name"],
-            order_by=f"{self.TABLE_NAME}.key",
         )
         return [StuffInfo(**person) for person in stuff]
 

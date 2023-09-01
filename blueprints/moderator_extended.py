@@ -77,7 +77,8 @@ async def delete_moderator(message: Message, user: str = None) -> None:
     text="Модсписок",
 )
 async def list_moderators(message: Message) -> None:
-    moderators = await moderator_db.get_all()
+    leads = await moderator_db.get_all(condition={"allowance =": 3})
+    moderators = leads + await moderator_db.get_all(condition={"allowance <>": 3})
     reformatted = await ReformatHandler.moderator_list(moderators, "moderators")
     await message.answer(
         f"Модераторы с правами у бота:\n{reformatted}"
