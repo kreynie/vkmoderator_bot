@@ -27,7 +27,7 @@ async def get_abbreviations(message: Message) -> None:
 
 @help_labeler.private_message(
     access=[Groups.MODERATOR, Rights.LOW],
-    text="помощь",
+    text=["помощь", "команды", "help"],
 )
 async def moderator_helper(message: Message) -> None:
     raw_help = [
@@ -132,7 +132,7 @@ async def legal_helper(message: Message) -> None:
         "--> dialog_time - время пересылки диалога Троллю",
         "▶️ Пример:",
         "ЛТ https://vk.com/id302266380 буст https://vk.com/wall302266380_4576 бб",
-        "Вместе с командой не забудьте прикрепить к сообщению скриншот (-ы)"
+        "Вместе с командой не забудьте прикрепить к сообщению скриншот (-ы)",
     ]
     current_permissions = await PermissionChecker.get_user_permissions(
         message.from_id, Groups.LEGAL

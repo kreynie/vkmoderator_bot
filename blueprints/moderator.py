@@ -45,7 +45,7 @@ async def ban(
     if user_info is None:
         return_reason = "Ошибка получения информации из ссылки"
     if full_comment is None:
-        return_reason = "Проверь ПРИЧИНУ бана"
+        return_reason = 'Проверь ПРИЧИНУ бана (команда "сокращения")'
     if ban_time_text is None:
         return_reason = "Проверь ВРЕМЯ бана"
 

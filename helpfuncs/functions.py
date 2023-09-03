@@ -12,10 +12,10 @@ from .ssaver import ScreenSaver
 
 json_handler = JSONHandler("formatted.json")
 data = json_handler.get_data()
-formatted_time = data["time"]
-formatted_abbreviations = data["abbreviations"]
-formatted_legal_abbreviations = data["ltabbreviations"]
-formatted_games = data["games"]
+formatted_time: dict = data["time"]
+formatted_abbreviations: dict = data["abbreviations"]
+formatted_legal_abbreviations: dict = data["ltabbreviations"]
+formatted_games: dict = data["games"]
 
 
 class ReformatHandler:
@@ -37,12 +37,13 @@ class ReformatHandler:
     @staticmethod
     async def comment(comment: str) -> str | None:
         if "+" in comment:
-            result = ", ".join(
-                (
-                    formatted_abbreviations.get(value)
-                    for value in comment.strip().split("+")
-                )
-            )
+            result = [
+                formatted_abbreviations.get(value)
+                for value in comment.strip().split("+")
+            ]
+            if None in result:
+                return None
+            result = ", ".join(result)
         else:
             result = formatted_abbreviations.get(comment)
         return result.capitalize() if result else None
