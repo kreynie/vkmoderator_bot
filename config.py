@@ -38,7 +38,7 @@ else:
 
 logger.remove()
 logger.add(
-    "debug.log",
+    project_path / "debug.log",
     format="{time} {level} {message}",
     level="DEBUG" if DEBUG else "INFO",
     rotation="00:00",
