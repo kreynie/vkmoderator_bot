@@ -3,6 +3,7 @@ from helpfuncs import DictionaryFuncs, JSONHandler, VKHandler
 from helpfuncs.functions import ReformatHandler
 from vkbottle.user import Message, UserLabeler
 
+from utils.exceptions import InformationReError, InformationRequestError
 from .rules import CheckPermissions, Groups, Rights
 
 moderator_extended_labeler = UserLabeler()
@@ -28,9 +29,13 @@ async def add_moderator(
         await message.answer("Забыл МВ")
         return
 
-    user_info = await VKHandler.get_user_info(user)
-    if user_info is None:
+    try:
+        user_info = await VKHandler.get_user_info(user)
+    except InformationReError:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
+        return
+    except InformationRequestError:
+        await message.answer("Не удалось найти информацию о пользователе по ссылке")
         return
 
     if await moderator_db.has_user(user_info.id):
@@ -56,9 +61,13 @@ async def delete_moderator(message: Message, user: str = None) -> None:
         await message.answer("Забыл ссылку на страницу!")
         return
 
-    user_info = await VKHandler.get_user_info(user)
-    if user_info is None:
+    try:
+        user_info = await VKHandler.get_user_info(user)
+    except InformationReError:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
+        return
+    except InformationRequestError:
+        await message.answer("Не удалось найти информацию о пользователе по ссылке")
         return
 
     if not await moderator_db.has_user(user_info.id):

@@ -2,6 +2,11 @@ from typing import Literal, Optional
 
 from config import api, ban_group_id, ban_reason_group_id
 from utils.info_classes import GroupInfo, UserInfo
+from utils.exceptions import (
+    InformationReError,
+    InformationRequestError,
+    VKAPIRequestError,
+)
 from vkbottle import VKAPIError
 from vkbottle.tools import PhotoWallUploader
 from vkbottle_types.objects import PhotosPhoto
@@ -33,10 +38,10 @@ class VKHandler:
         user: str,
         name_case: Optional[Literal["nom", "gen", "dat", "acc", "ins", "abl"]] = None,
         fields: Optional[list[str]] = None,
-    ) -> UserInfo | None:
+    ) -> UserInfo:
         matched = await get_id_from_text(user)
         if not matched:
-            return None
+            raise InformationReError
 
         if fields is None:
             fields = ["screen_name"]
@@ -45,20 +50,23 @@ class VKHandler:
         try:
             info = await api.users.get(matched, fields, name_case)
         except VKAPIError:
-            return None
+            raise VKAPIRequestError
+
+        if not info:
+            raise InformationRequestError(f"{user=}")
 
         return UserInfo(**info[0].dict())
 
     @staticmethod
     async def get_group_info(
         group: str, fields: Optional[list[str]] = None
-    ) -> GroupInfo | None:
+    ) -> GroupInfo:
         matched = await get_id_from_text(group)
         if not matched:
-            return None
+            raise InformationReError
 
         if not await LinkHandler.is_group_link(group):
-            return None
+            raise InformationReError
 
         if fields is None:
             fields = ["screen_name"]
@@ -67,12 +75,15 @@ class VKHandler:
         try:
             info = await api.groups.get_by_id(group_id=matched, fields=fields)
         except VKAPIError:
-            return None
+            raise InformationRequestError
+
+        if not info:
+            raise InformationRequestError(f"{group=}")
 
         return GroupInfo(**info[0].dict())
 
     @staticmethod
-    async def get_object_info(url: str) -> tuple[bool, None | GroupInfo | UserInfo]:
+    async def get_object_info(url: str) -> tuple[bool, GroupInfo | UserInfo]:
         """Returns an object info from a given url
 
         :param url: url to get object info

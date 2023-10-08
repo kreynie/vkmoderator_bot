@@ -4,6 +4,7 @@ from time import localtime, strftime
 from config import moderator_db
 from helpfuncs import VKHandler
 from helpfuncs.functions import ReformatHandler
+from utils.exceptions import InformationReError, InformationRequestError
 from utils.info_classes import UserInfo
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
@@ -32,7 +33,15 @@ async def ban(
 ) -> None:
     return_reason = None
 
-    user_info = await VKHandler.get_user_info(user)
+    try:
+        user_info = await VKHandler.get_user_info(user)
+    except InformationReError:
+        await message.answer("Ссылка на страницу должна быть полной и корректной")
+        return
+    except InformationRequestError:
+        await message.answer("Не удалось найти информацию о пользователе по ссылке")
+        return
+
     already_banned = await VKHandler.check_if_banned(user_info.id)
     if already_banned:
         await message.answer("Пользователь уже забанен в группе")

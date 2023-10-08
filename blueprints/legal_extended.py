@@ -3,6 +3,7 @@ from helpfuncs import VKHandler
 from helpfuncs.functions import ReformatHandler
 from vkbottle.user import Message, UserLabeler
 
+from utils.exceptions import InformationReError, InformationRequestError
 from .rules import CheckPermissions, Groups, Rights
 
 ltl_labeler = UserLabeler()
@@ -21,9 +22,13 @@ async def add_legal(message: Message, user: str, legal_id: int) -> None:
     if legal_id is None:
         await message.answer("Забыл айдишник")
 
-    user_info = await VKHandler.get_user_info(user)
-    if user_info is None:
+    try:
+        user_info = await VKHandler.get_user_info(user)
+    except InformationReError:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
+        return
+    except InformationRequestError:
+        await message.answer("Не удалось найти информацию о пользователе по ссылке")
         return
 
     if await legal_db.has_user(user_info.id):
@@ -53,9 +58,13 @@ async def remove_legal(message: Message, user: str) -> None:
         await message.answer("Забыл ссылку на страницу!")
         return
 
-    user_info = await VKHandler.get_user_info(user)
-    if user_info is None:
+    try:
+        user_info = await VKHandler.get_user_info(user)
+    except InformationReError:
         await message.answer("Ссылка на страницу должна быть полной и корректной")
+        return
+    except InformationRequestError:
+        await message.answer("Не удалось найти информацию о пользователе по ссылке")
         return
 
     if not await legal_db.has_user(user_info.id):

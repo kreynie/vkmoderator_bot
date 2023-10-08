@@ -6,6 +6,7 @@ from helpfuncs import VKHandler
 from helpfuncs.functions import PhotoHandler, ReformatHandler
 from vkbottle.user import Message, UserLabeler
 
+from utils.exceptions import InformationRequestError
 from .rules import CheckPermissions, Groups, Rights
 
 lt_labeler = UserLabeler()
@@ -30,9 +31,9 @@ async def legal_helper(
     flea: int = 0,
     dialog_time: Optional[str] = None,
 ) -> None:
-    is_group, violator = await VKHandler.get_object_info(violator_link)
-
-    if violator is None:
+    try:
+        is_group, violator = await VKHandler.get_object_info(violator_link)
+    except InformationRequestError:
         await message.answer(
             "Не удалось найти информацию о группе (пользователе) по ссылке"
         )
