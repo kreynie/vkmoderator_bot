@@ -21,7 +21,7 @@ api = API(token=token)
 spreadsheet = (
     "1_QwV3b-ue0xG3McMLjO6rijjuaVP8VBhD-G1x2kOW7s" if DEBUG else getenv("spreadsheet")
 )
-credentials_path = getenv("credentials")
+credentials_path = project_path / "creds.json"
 
 labeler = UserLabeler()
 
