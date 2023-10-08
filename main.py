@@ -8,4 +8,6 @@ bot = User(api=api, labeler=labeler)
 for level in labelers:
     labeler.load(level)
 
-bot.run_forever()
+
+if __name__ == "__main__":
+    bot.run_forever()
