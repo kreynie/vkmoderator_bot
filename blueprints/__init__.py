@@ -1,5 +1,4 @@
 from .admin import admin_labeler
-from .autoai import ai_labeler
 from .common import common_labeler
 from .help import help_labeler
 from .lead import lead_labeler
@@ -16,7 +15,6 @@ labelers = [
     moderator_labeler,
     help_labeler,
     mailing_labeler,
-    ai_labeler,
     lt_labeler,
     ltl_labeler,
     common_labeler,
