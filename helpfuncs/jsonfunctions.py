@@ -1,9 +1,12 @@
 import json
+from os import PathLike
+from pathlib import Path
+
 from typing import Any, Literal
 
 
 class JSONHandler:
-    def __init__(self, filename: str = "moderators.json") -> None:
+    def __init__(self, filename: str | Path | PathLike) -> None:
         self.filename = filename
 
     def get_data(self) -> dict:

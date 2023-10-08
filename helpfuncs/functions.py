@@ -5,12 +5,14 @@ from time import time
 from typing import Any, Generator, List, Literal, Optional
 
 from aiohttp import ClientSession
+
+from config import project_path
 from utils.info_classes import StuffInfo
 
 from .jsonfunctions import JSONHandler
 from .ssaver import ScreenSaver
 
-json_handler = JSONHandler("formatted.json")
+json_handler = JSONHandler(project_path / "formatted.json")
 data = json_handler.get_data()
 formatted_time: dict = data["time"]
 formatted_abbreviations: dict = data["abbreviations"]

@@ -1,5 +1,6 @@
 from helpfuncs import DictionaryFuncs, JSONHandler
 from vkbottle.user import Message, UserLabeler
+from config import project_path
 
 from .rules import CheckPermissions, Groups, PermissionChecker, Rights
 
@@ -7,7 +8,7 @@ help_labeler = UserLabeler()
 help_labeler.vbml_ignore_case = True
 help_labeler.custom_rules["access"] = CheckPermissions
 
-get_json = JSONHandler("formatted.json").get_data
+get_json = JSONHandler(project_path / "formatted.json").get_data
 
 
 @help_labeler.private_message(

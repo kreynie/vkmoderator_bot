@@ -1,4 +1,5 @@
 from os import getenv
+from pathlib import Path
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -6,6 +7,8 @@ from vkbottle import API
 from vkbottle.user import UserLabeler
 
 from database import LegalTable, ModeratorTable, UsersTable
+
+project_path = Path(__file__).resolve().parent
 
 load_dotenv()
 DEBUG = getenv("DEBUG", 0)
@@ -22,7 +25,7 @@ credentials_path = getenv("credentials")
 
 labeler = UserLabeler()
 
-db_file_name = "base.db"
+db_file_name = project_path / "base.db"
 users_db = UsersTable(db_file_name)
 moderator_db = ModeratorTable(db_file_name)
 legal_db = LegalTable(db_file_name)
@@ -33,19 +36,6 @@ else:
     ban_group_id, ban_reason_group_id = -49033185, -112433737
 
 
-__all__ = [
-    "api",
-    "spreadsheet",
-    "credentials_path",
-    "labeler",
-    "users_db",
-    "moderator_db",
-    "legal_db",
-    "ban_group_id",
-    "ban_reason_group_id",
-]
-
-
 logger.remove()
 logger.add(
     "debug.log",
@@ -54,4 +44,18 @@ logger.add(
     rotation="00:00",
     retention=1,
     compression="zip",
+)
+
+
+__all__ = (
+    "api",
+    "ban_group_id",
+    "ban_reason_group_id",
+    "credentials_path",
+    "labeler",
+    "legal_db",
+    "moderator_db",
+    "project_path",
+    "spreadsheet",
+    "users_db",
 )

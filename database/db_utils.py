@@ -1,3 +1,5 @@
+from os import PathLike
+from pathlib import Path
 from typing import Any, Literal, Optional
 
 from typing_extensions import override
@@ -11,7 +13,7 @@ class BaseTable(Database):
     COLUMNS: dict[str, str]
     TRIGGERS: list[tuple[str, dict[str, str], str]] | None = None
 
-    def __init__(self, db_file: str) -> None:
+    def __init__(self, db_file: str | Path | PathLike) -> None:
         super().__init__(db_file=db_file)
         self.init_database(self.TABLE_NAME, self.COLUMNS)
         if self.TRIGGERS:

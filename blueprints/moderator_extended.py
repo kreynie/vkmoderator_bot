@@ -1,4 +1,4 @@
-from config import moderator_db, users_db
+from config import moderator_db, project_path, users_db
 from helpfuncs import DictionaryFuncs, JSONHandler, VKHandler
 from helpfuncs.functions import ReformatHandler
 from vkbottle.user import Message, UserLabeler
@@ -10,7 +10,7 @@ moderator_extended_labeler = UserLabeler()
 moderator_extended_labeler.vbml_ignore_case = True
 moderator_extended_labeler.custom_rules["access"] = CheckPermissions
 
-formatted_json = JSONHandler("formatted.json")
+formatted_json = JSONHandler(project_path / "formatted.json")
 
 
 @moderator_extended_labeler.private_message(
