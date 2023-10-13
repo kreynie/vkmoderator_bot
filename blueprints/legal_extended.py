@@ -23,6 +23,7 @@ ltl_labeler.custom_rules["access"] = CheckPermissions
 async def add_legal(message: Message, user: str = "", legal_id: int = 0) -> None:
     if not legal_id:
         await message.answer("Забыл айдишник")
+        return
     if not user:
         await message.answer("Забыл ссылку на страницу!")
         return

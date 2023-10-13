@@ -38,10 +38,13 @@ async def legal_helper(
 ) -> None:
     if violation_link is None:
         await message.answer("Нет ссылки на нарушение")
+        return
     if reason is None:
         await message.answer("Нет причины")
+        return
     if violator_link is None:
         await message.answer("Нет ссылки на нарушителя")
+        return
 
     object_ = await VKHandler.get_object_info(violator_link)
 
