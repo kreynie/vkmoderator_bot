@@ -26,3 +26,9 @@ class StuffInfo(UserInfo):
 class GroupInfo:
     id: int
     screen_name: Optional[str] = None
+
+
+@dataclass
+class ObjectInfo:
+    object: UserInfo | GroupInfo
+    is_group: bool
