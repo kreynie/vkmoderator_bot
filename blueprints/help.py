@@ -64,10 +64,6 @@ async def moderator_helper(message: Message) -> None:
                 "▶️ Удалсокр <abbreviation>",
                 "• <abbreviation> - сокращение",
                 "• <full_text> - полный текст",
-                "▶️ ai_add <level> <text> - добавить в базу бота выражение, где",
-                "• <level> - 0 или 1, 1 - нарушение",
-                "• <text> - СЫРОЙ текст из комментария, т.е. просто копипаста",
-                "▶️ ai_test <text> - спросить мнение величайшего по поводу комментария",
             )
         )
 
@@ -87,7 +83,6 @@ async def moderator_helper(message: Message) -> None:
                 "\n\n",
                 "Остальные команды: ",
                 "▶️ Права <user> <group> <value>",
-                "▶️ ai_switch",
             )
         )
 
