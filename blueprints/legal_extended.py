@@ -1,9 +1,9 @@
+from vkbottle.user import Message, UserLabeler
+
 from config import legal_db, users_db
 from helpfuncs import VKHandler
 from helpfuncs.functions import ReformatHandler
-from vkbottle.user import Message, UserLabeler
-
-from utils.exceptions import InformationReError, InformationRequestError
+from utils.exceptions import handle_errors_decorator
 from .rules import CheckPermissions, Groups, Rights
 
 ltl_labeler = UserLabeler()
@@ -13,23 +13,21 @@ ltl_labeler.custom_rules["access"] = CheckPermissions
 
 @ltl_labeler.private_message(
     access=[Groups.LEGAL, Rights.MIDDLE],
-    text="ДобЛТ <user> <legal_id:int>",
+    text=[
+        "ДобЛТ <user> <legal_id:int>",
+        "ДобЛТ <user>",
+        "ДобЛТ",
+    ],
 )
-async def add_legal(message: Message, user: str, legal_id: int) -> None:
-    if user is None:
+@handle_errors_decorator
+async def add_legal(message: Message, user: str = "", legal_id: int = 0) -> None:
+    if not legal_id:
+        await message.answer("Забыл айдишник")
+    if not user:
         await message.answer("Забыл ссылку на страницу!")
         return
-    if legal_id is None:
-        await message.answer("Забыл айдишник")
 
-    try:
-        user_info = await VKHandler.get_user_info(user)
-    except InformationReError:
-        await message.answer("Ссылка на страницу должна быть полной и корректной")
-        return
-    except InformationRequestError:
-        await message.answer("Не удалось найти информацию о пользователе по ссылке")
-        return
+    user_info = await VKHandler.get_user_info(user)
 
     if await legal_db.has_user(user_info.id):
         await message.answer("Уже есть в списке")
@@ -51,21 +49,15 @@ async def add_legal(message: Message, user: str, legal_id: int) -> None:
 
 @ltl_labeler.private_message(
     access=[Groups.LEGAL, Rights.MIDDLE],
-    text="УдалЛТ <user>",
+    text=["УдалЛТ <user>", "УдалЛТ"],
 )
-async def remove_legal(message: Message, user: str) -> None:
-    if user is None:
+@handle_errors_decorator
+async def remove_legal(message: Message, user: str = "") -> None:
+    if not user:
         await message.answer("Забыл ссылку на страницу!")
         return
 
-    try:
-        user_info = await VKHandler.get_user_info(user)
-    except InformationReError:
-        await message.answer("Ссылка на страницу должна быть полной и корректной")
-        return
-    except InformationRequestError:
-        await message.answer("Не удалось найти информацию о пользователе по ссылке")
-        return
+    user_info = await VKHandler.get_user_info(user)
 
     if not await legal_db.has_user(user_info.id):
         await message.answer("Пользователя нет в списке")

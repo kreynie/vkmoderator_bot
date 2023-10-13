@@ -1,7 +1,7 @@
-from helpfuncs import VKHandler
 from vkbottle.user import Message, UserLabeler
 
-from utils.exceptions import InformationReError, InformationRequestError
+from helpfuncs import VKHandler
+from utils.exceptions import handle_errors_decorator
 from .rules import CheckPermissions, Groups, Rights
 
 common_labeler = UserLabeler()
@@ -9,17 +9,18 @@ common_labeler.vbml_ignore_case = True
 common_labeler.custom_rules["access"] = CheckPermissions
 
 
-@common_labeler.private_message(access=[Groups.ANY, Rights.LOW], text="пермлинк <user>")
-async def get_user_permanent_link(message: Message, user: str) -> None:
-    if not user:
-        await message.answer("Забыл юзера")
-
-    try:
-        user_info = await VKHandler.get_user_info(user)
-    except InformationReError:
-        await message.answer("Ссылка на страницу должна быть полной и корректной")
+@common_labeler.private_message(
+    access=[Groups.ANY, Rights.LOW],
+    text=[
+        "пермлинк <object_>",
+        "пермлинк",
+    ],
+)
+@handle_errors_decorator
+async def get_permanent_link(message: Message, object_: str = "") -> None:
+    if not object_:
+        await message.answer("Правильное использование: пермлинк <link>")
         return
-    except InformationRequestError:
-        await message.answer("Не удалось найти информацию о пользователе по ссылке")
-        return
-    await message.answer(f"https://vk.com/id{user_info.id}")
+    object_info = await VKHandler.get_object_info(object_)
+    prefix = "club" if object_info.is_group else "id"
+    await message.answer(f"https://vk.com/{prefix}{object_info.object.id}")

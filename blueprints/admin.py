@@ -1,8 +1,8 @@
-from config import legal_db, moderator_db
-from helpfuncs import VKHandler
 from vkbottle.user import Message, UserLabeler
 
-from utils.exceptions import InformationReError, InformationRequestError
+from config import legal_db, moderator_db
+from helpfuncs import VKHandler
+from utils.exceptions import handle_errors_decorator
 from .rules import CheckPermissions, Groups, Rights
 
 admin_labeler = UserLabeler()
@@ -12,21 +12,22 @@ admin_labeler.custom_rules["access"] = CheckPermissions
 
 @admin_labeler.private_message(
     access=[Groups.MODERATOR, Rights.ADMIN],
-    text="Права <user> <group> <value:int>",
+    text=[
+        "Права <user> <group> <value:int>",
+        "Права <user> <group>",
+        "Права <user>",
+        "Права",
+    ],
 )
-async def change_rights(message: Message, user: str, group: str, value: int) -> None:
-    if user is None:
-        await message.answer("Забыл ссылку на страницу!")
+@handle_errors_decorator
+async def change_rights(
+    message: Message, user: str = "", group: str = "", value: int = 0
+) -> None:
+    if not user or not group or not value:
+        await message.answer("Correct form: Права <user> <group> <value:int>")
         return
 
-    try:
-        user_info = await VKHandler.get_user_info(user)
-    except InformationReError:
-        await message.answer("Ссылка на страницу должна быть полной и корректной")
-        return
-    except InformationRequestError:
-        await message.answer("Не удалось найти информацию о пользователе по ссылке")
-        return
+    user_info = await VKHandler.get_user_info(user)
 
     match group:
         case "mod":

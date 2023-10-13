@@ -1,9 +1,11 @@
+from vkbottle.user import Message, UserLabeler
+
 from config import moderator_db, project_path, users_db
 from helpfuncs import DictionaryFuncs, JSONHandler, VKHandler
 from helpfuncs.functions import ReformatHandler
-from vkbottle.user import Message, UserLabeler
-
-from utils.exceptions import InformationReError, InformationRequestError
+from utils.exceptions import (
+    handle_errors_decorator,
+)
 from .rules import CheckPermissions, Groups, Rights
 
 moderator_extended_labeler = UserLabeler()
@@ -15,28 +17,26 @@ formatted_json = JSONHandler(project_path / "formatted.json")
 
 @moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
-    text="Добмод <user> <key:int>",
+    text=[
+        "Добмод <user> <key:int>",
+        "Добмод <user>",
+        "Добмод",
+    ],
 )
+@handle_errors_decorator
 async def add_moderator(
     message: Message,
     user: str = None,
     key: int = None,
 ) -> None:
-    if user is None:
-        await message.answer("Забыл ссылку на страницу!")
-        return
     if key is None:
         await message.answer("Забыл МВ")
         return
+    if user is None:
+        await message.answer("Забыл ссылку на страницу!")
+        return
 
-    try:
-        user_info = await VKHandler.get_user_info(user)
-    except InformationReError:
-        await message.answer("Ссылка на страницу должна быть полной и корректной")
-        return
-    except InformationRequestError:
-        await message.answer("Не удалось найти информацию о пользователе по ссылке")
-        return
+    user_info = await VKHandler.get_user_info(user)
 
     if await moderator_db.has_user(user_info.id):
         await message.answer("Пользователь уже есть в списке")
@@ -54,21 +54,18 @@ async def add_moderator(
 
 @moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
-    text="Удалмод <user>",
+    text=[
+        "Удалмод <user>",
+        "Удалмод",
+    ],
 )
+@handle_errors_decorator
 async def delete_moderator(message: Message, user: str = None) -> None:
     if user is None:
-        await message.answer("Забыл ссылку на страницу!")
+        await message.answer("Нет ссылки на страницу!")
         return
 
-    try:
-        user_info = await VKHandler.get_user_info(user)
-    except InformationReError:
-        await message.answer("Ссылка на страницу должна быть полной и корректной")
-        return
-    except InformationRequestError:
-        await message.answer("Не удалось найти информацию о пользователе по ссылке")
-        return
+    user_info = await VKHandler.get_user_info(user)
 
     if not await moderator_db.has_user(user_info.id):
         await message.answer("Пользователя нет в списке")
@@ -98,7 +95,11 @@ async def list_moderators(message: Message) -> None:
 
 @moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
-    text="Добсокр <abbreviation> <full_text>",
+    text=[
+        "Добсокр <abbreviation> <full_text>",
+        "Добсокр <abbreviation>",
+        "Добсокр",
+    ],
 )
 async def add_abbreviation(
     message: Message,
@@ -125,7 +126,11 @@ async def add_abbreviation(
 
 @moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
-    text="Измсокр <abbreviation> <full_text>",
+    text=[
+        "Измсокр <abbreviation> <full_text>",
+        "Измсокр <abbreviation>",
+        "Измсокр",
+    ],
 )
 async def edit_abbreviation(
     message: Message,
@@ -154,7 +159,7 @@ async def edit_abbreviation(
 
 @moderator_extended_labeler.private_message(
     access=[Groups.MODERATOR, Rights.MIDDLE],
-    text="Удалсокр <abbreviation>",
+    text=["Удалсокр <abbreviation>", "Удалсокр"],
 )
 async def remove_abbreviation(message: Message, abbreviation: str = None) -> None:
     if abbreviation is None:

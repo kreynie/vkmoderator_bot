@@ -20,4 +20,4 @@ labelers = [
     common_labeler,
 ]
 
-__all__ = [*labelers]
+__all__ = tuple([*labelers])

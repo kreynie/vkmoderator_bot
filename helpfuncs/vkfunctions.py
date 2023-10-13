@@ -1,16 +1,17 @@
 from typing import Literal, Optional
 
 from config import api, ban_group_id, ban_reason_group_id
-from utils.info_classes import GroupInfo, UserInfo
+from utils.info_classes import GroupInfo, UserInfo, ObjectInfo
 from utils.exceptions import (
-    InformationReError,
-    InformationRequestError,
+    ObjectInformationReError,
+    ObjectInformationRequestError,
+    InvalidObjectRequestError,
     VKAPIRequestError,
 )
 from vkbottle import VKAPIError
 from vkbottle.tools import PhotoWallUploader
-from vkbottle_types.objects import PhotosPhoto
 from vkbottle_types.responses.wall import GetCommentsResponseModel, PostResponseModel
+from vkbottle_types.responses.photos import PhotosPhoto
 
 from .functions import LinkHandler, PhotoHandler, async_list_generator, get_id_from_text
 
@@ -41,7 +42,10 @@ class VKHandler:
     ) -> UserInfo:
         matched = await get_id_from_text(user)
         if not matched:
-            raise InformationReError
+            raise ObjectInformationReError
+
+        if LinkHandler.is_group(matched):
+            raise InvalidObjectRequestError
 
         if fields is None:
             fields = ["screen_name"]
@@ -53,7 +57,7 @@ class VKHandler:
             raise VKAPIRequestError
 
         if not info:
-            raise InformationRequestError(f"{user=}")
+            raise ObjectInformationRequestError(f"{user=}")
 
         return UserInfo(**info[0].dict())
 
@@ -63,10 +67,10 @@ class VKHandler:
     ) -> GroupInfo:
         matched = await get_id_from_text(group)
         if not matched:
-            raise InformationReError
+            raise ObjectInformationReError
 
-        if not await LinkHandler.is_group_link(group):
-            raise InformationReError
+        if not LinkHandler.is_group(matched):
+            raise InvalidObjectRequestError
 
         if fields is None:
             fields = ["screen_name"]
@@ -75,25 +79,35 @@ class VKHandler:
         try:
             info = await api.groups.get_by_id(group_id=matched, fields=fields)
         except VKAPIError:
-            raise InformationRequestError
+            raise ObjectInformationRequestError
 
         if not info:
-            raise InformationRequestError(f"{group=}")
+            raise ObjectInformationRequestError(f"{group=}")
 
         return GroupInfo(**info[0].dict())
 
     @staticmethod
-    async def get_object_info(url: str) -> tuple[bool, GroupInfo | UserInfo]:
+    async def get_object_info(url: str) -> ObjectInfo:
         """Returns an object info from a given url
 
         :param url: url to get object info
-        :return: is_group boolean, object info or None
+        :return: ObjectInfo or raises ObjectInformationRequestError
         """
         is_user = None
-        is_group = await VKHandler.get_group_info(url)
-        if is_group is None:
+        is_group = None
+        try:
+            is_group = await VKHandler.get_group_info(url)
+        except (ObjectInformationRequestError, InvalidObjectRequestError):
             is_user = await VKHandler.get_user_info(url)
-        return bool(is_group), is_group or is_user
+
+        if is_user is None and is_group is None:
+            raise ObjectInformationRequestError
+
+        response = {
+            "object": is_group or is_user,
+            "is_group": bool(is_group),
+        }
+        return ObjectInfo(**response)
 
     @staticmethod
     async def ban(*args, **kwargs) -> int:
@@ -140,7 +154,7 @@ class VKHandler:
         return [await VKHandler.get_short_link(link) for link in links]
 
     @staticmethod
-    async def get_photos(photos: str | list) -> list:
+    async def get_photos(photos: str | list) -> list[PhotosPhoto]:
         """Returns photos data from VK
 
         :param photos: each photo should be in format "photo<owner>_<photo_id>_<access_key>"

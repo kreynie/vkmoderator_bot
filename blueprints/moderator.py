@@ -1,14 +1,14 @@
 from asyncio import sleep as asleep
 from time import localtime, strftime
 
-from config import moderator_db
-from helpfuncs import VKHandler
-from helpfuncs.functions import ReformatHandler
-from utils.exceptions import InformationReError, InformationRequestError
-from utils.info_classes import UserInfo
 from vkbottle import VKAPIError
 from vkbottle.user import Message, UserLabeler
 
+from config import moderator_db
+from helpfuncs import VKHandler
+from helpfuncs.functions import ReformatHandler
+from utils.exceptions import handle_errors_decorator
+from utils.info_classes import UserInfo
 from .rules import CheckPermissions, Groups, Rights
 
 moderator_labeler = UserLabeler()
@@ -22,25 +22,30 @@ moderator_labeler.custom_rules["access"] = CheckPermissions
         "Бан <user> <comment> <ban_time> <banner_key>",
         "Бан <user> <comment> <ban_time>",
         "Бан <user> <comment>",
+        "Бан <user>",
+        "Бан",
     ],
 )
+@handle_errors_decorator
 async def ban(
     message: Message,
-    user: str,
-    ban_time: str,
+    user: str = "",
+    ban_time: str = "",
     comment: str = "",
     banner_key: str = "",
 ) -> None:
+    if not user:
+        await message.answer(
+            'Нет нарушителя. Воспользуйся командой "Помощь" для справки'
+        )
+        return
+    if not comment:
+        await message.answer("Забыл причину бана")
+        return
+
     return_reason = None
 
-    try:
-        user_info = await VKHandler.get_user_info(user)
-    except InformationReError:
-        await message.answer("Ссылка на страницу должна быть полной и корректной")
-        return
-    except InformationRequestError:
-        await message.answer("Не удалось найти информацию о пользователе по ссылке")
-        return
+    user_info = await VKHandler.get_user_info(user)
 
     already_banned = await VKHandler.check_if_banned(user_info.id)
     if already_banned:
@@ -117,6 +122,7 @@ async def ban(
     await asleep(3)
 
 
+@handle_errors_decorator
 async def post(
     message: Message,
     photos: list,
@@ -126,24 +132,17 @@ async def post(
     comment: str,
     ban_time: str,
 ) -> None:
-    try:
-        uploaded_photos = await VKHandler.upload_images(photos)
-        reply = (
-            f"{user_info.full_name}",
-            f"https://vk.com/id{user_info.id}",
-            f"{comment} - {ban_time}",
-            f"@id{banner_id}({banner_key})\n",
-        )
+    uploaded_photos = await VKHandler.upload_images(photos)
+    reply = (
+        f"{user_info.full_name}",
+        f"https://vk.com/id{user_info.id}",
+        f"{comment} - {ban_time}",
+        f"@id{banner_id}({banner_key})\n",
+    )
 
-        await VKHandler.post(
-            from_group=True,
-            message="\n".join(reply),
-            attachments=uploaded_photos,
-        )
-        await message.answer("Пост в бане успешно сделан")
-    except VKAPIError:
-        await message.answer(
-            "Что-то пошло не так при попытке сделать пост. Попробуй еще раз. \
-            Если не получится, то запость сам\n"
-            "Напиши @volonteerblitz(ему) время попытки использования бота."
-        )
+    await VKHandler.post(
+        from_group=True,
+        message="\n".join(reply),
+        attachments=uploaded_photos,
+    )
+    await message.answer("Пост в бане успешно сделан")
