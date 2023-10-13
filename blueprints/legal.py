@@ -45,6 +45,9 @@ async def legal_helper(
     if violator_link is None:
         await message.answer("Нет ссылки на нарушителя")
         return
+    if game is None:
+        await message.answer("Не указан проект, в котором произошло нарушение")
+        return
 
     object_ = await VKHandler.get_object_info(violator_link)
 
