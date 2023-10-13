@@ -1,6 +1,6 @@
 import io
 from asyncio import to_thread
-from re import match
+import re
 from time import time
 from typing import Any, Generator, List, Literal, Optional
 
@@ -176,7 +176,7 @@ class PhotoHandler:
 
     @staticmethod
     async def screenshot(url: str, **kwargs) -> bytes | None:
-        if not await LinkHandler.check_vk_link(url):
+        if not LinkHandler.check_vk_link(url):
             return None
         if not url.startswith("https://"):
             url = "https://" + url
@@ -194,8 +194,8 @@ class CommentsHandler:
 
 class LinkHandler:
     @staticmethod
-    async def check_vk_link(url: str, slug: bool = False) -> str | None:
-        matched_link = match(r".*vk\.com/(.*)", url)
+    def check_vk_link(url: str, slug: bool = False) -> str | None:
+        matched_link = re.match(r".*vk\.com/(.*)", url)
         if matched_link is None:
             return None
         if slug:
@@ -203,9 +203,8 @@ class LinkHandler:
         return matched_link.group(0)
 
     @staticmethod
-    async def is_group_link(url: str) -> bool:
-        result = await LinkHandler.check_vk_link(url, slug=True)
-        return False if result.startswith("id") else True
+    def is_group(id_: str) -> bool:
+        return id_.startswith("club")
 
 
 async def async_list_generator(lst: list[Any]):
@@ -215,14 +214,14 @@ async def async_list_generator(lst: list[Any]):
 
 async def get_id_from_text(user: str) -> str | None:
     matched_mention = None
-    matched = await LinkHandler.check_vk_link(user, slug=True)
+    matched = LinkHandler.check_vk_link(user, slug=True)
     if matched is None:
-        matched_mention = match(r"\[id(.+?)\|", user)
+        matched_mention = re.findall(r"\[(id\d*|club\d+)\|.*?\]", user)
 
     if matched_mention is None and matched is None:
         return None
 
     if matched_mention:
-        matched = matched_mention.group(1)
+        matched = matched_mention[0]
 
     return matched
