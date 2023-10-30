@@ -20,8 +20,7 @@ class VKHandler:
     @staticmethod
     async def upload_image(photo: str | bytes | PhotosPhoto) -> str | list[dict]:
         if isinstance(photo, PhotosPhoto):
-            photo_handler = PhotoHandler(photo=photo.sizes)
-            photo = await photo_handler.get_photo()
+            photo = await PhotoHandler(photo=photo.sizes).get_photo()
         return await PhotoWallUploader(api).upload(photo)
 
     @staticmethod
@@ -47,10 +46,10 @@ class VKHandler:
         if LinkHandler.is_group(matched):
             raise InvalidObjectRequestError
 
-        if fields is None:
-            fields = ["screen_name"]
+        fields = fields or ["screen_name"]
         if "screen_name" not in fields:
             fields.append("screen_name")
+
         try:
             info = await api.users.get(matched, fields, name_case)
         except VKAPIError:
@@ -72,10 +71,10 @@ class VKHandler:
         if not LinkHandler.is_group(matched):
             raise InvalidObjectRequestError
 
-        if fields is None:
-            fields = ["screen_name"]
+        fields = fields or ["screen_name"]
         if "screen_name" not in fields:
             fields.append("screen_name")
+
         try:
             info = await api.groups.get_by_id(group_id=matched, fields=fields)
         except VKAPIError:
@@ -93,19 +92,19 @@ class VKHandler:
         :param url: url to get object info
         :return: ObjectInfo or raises ObjectInformationRequestError
         """
-        is_user = None
-        is_group = None
+        user_info = None
+        group_info = None
         try:
-            is_group = await VKHandler.get_group_info(url)
+            group_info = await VKHandler.get_group_info(url)
         except (ObjectInformationRequestError, InvalidObjectRequestError):
-            is_user = await VKHandler.get_user_info(url)
+            user_info = await VKHandler.get_user_info(url)
 
-        if is_user is None and is_group is None:
+        if user_info is None and group_info is None:
             raise ObjectInformationRequestError
 
         response = {
-            "object": is_group or is_user,
-            "is_group": bool(is_group),
+            "object": group_info or user_info,
+            "is_group": group_info is None,
         }
         return ObjectInfo(**response)
 
@@ -126,32 +125,9 @@ class VKHandler:
         return await api.wall.post(owner_id=ban_reason_group_id, **kwargs)
 
     @staticmethod
-    async def get_posts(count: int = 1, **kwargs) -> list:
-        posts = await api.wall.get(owner_id=ban_group_id, count=count, **kwargs)
-        return posts.items
-
-    @staticmethod
-    async def get_comments(**kwargs) -> GetCommentsResponseModel:
-        return await api.wall.get_comments(owner_id=ban_group_id, sort="desc", **kwargs)
-
-    @staticmethod
-    async def send_message(user_id: int, message: str, *args, **kwargs) -> int:
-        return await api.messages.send(
-            user_id=user_id,
-            message=message,
-            random_id=0,
-            *args,
-            **kwargs,
-        )
-
-    @staticmethod
     async def get_short_link(link: str) -> str:
         result = await api.utils.get_short_link(url=link, private=1)
         return result.short_url
-
-    @staticmethod
-    async def get_short_links(links: list[str]) -> list[str]:
-        return [await VKHandler.get_short_link(link) for link in links]
 
     @staticmethod
     async def get_photos(photos: str | list) -> list[PhotosPhoto]:
