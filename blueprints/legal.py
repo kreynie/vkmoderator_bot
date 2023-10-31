@@ -51,9 +51,7 @@ async def legal_helper(
 
     object_ = await VKHandler.get_object_info(violator_link)
 
-    reason = await ReformatHandler.legal(
-        type_="abbreviations", abbreviation=reason.lower()
-    )
+    reason = ReformatHandler.legal(type_="abbreviations", abbreviation=reason.lower())
     if reason is None:
         await message.answer(
             "Не удалось расшифровать причину. "
@@ -61,7 +59,7 @@ async def legal_helper(
         )
         return
 
-    game_full = await ReformatHandler.legal(type_="games", abbreviation=game.lower())
+    game_full = ReformatHandler.legal(type_="games", abbreviation=game.lower())
     if game_full is None:
         await message.answer(
             "Не удалось расшифровать игру. "
@@ -98,13 +96,13 @@ async def legal_helper(
     moderator = await legal_db.get_user_by_id(message.from_id)
 
     photo_data = await VKHandler.get_photos(uploaded_image)
-    photo_link = await PhotoHandler.get_photo_max_size_url(photo_data.sizes)
+    photo_link = PhotoHandler.get_photo_max_size_url(photo_data.sizes)
     short_screenshot_link = await VKHandler.get_short_link(photo_link)
     violator_link = "https://vk.com/" + ("club" if object_.is_group else "id")
     original_violator_link = f"{violator_link}{object_.object.id}"
     violator_screen_name = f"https://vk.com/{object_.object.screen_name}"
 
-    formatted_row = await ReformatHandler.sheets_row(
+    formatted_row = ReformatHandler.sheets_row(
         object_.is_group,
         violator_link=original_violator_link,
         violator_screen_name=violator_screen_name,

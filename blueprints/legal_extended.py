@@ -77,7 +77,7 @@ async def remove_legal(message: Message, user: str = "") -> None:
 )
 async def list_legal(message: Message) -> None:
     legal = await legal_db.get_all()
-    reformatted = await ReformatHandler.moderator_list(legal, "legal")
+    reformatted = ReformatHandler.moderator_list(legal, "legal")
     await message.answer(
         f"LT с правами у бота:\n{reformatted}" if reformatted else "Ни у кого нет прав"
     )
