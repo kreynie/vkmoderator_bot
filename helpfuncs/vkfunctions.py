@@ -50,10 +50,7 @@ class VKHandler:
         if "screen_name" not in fields:
             fields.append("screen_name")
 
-        try:
-            info = await api.users.get(matched, fields, name_case)
-        except VKAPIError:
-            raise VKAPIRequestError
+        info = await api.users.get(matched, fields, name_case)
 
         if not info:
             raise ObjectInformationRequestError(f"{user=}")
@@ -121,8 +118,11 @@ class VKHandler:
             return False
 
     @staticmethod
-    async def post(**kwargs) -> PostResponseModel:
-        return await api.wall.post(owner_id=ban_reason_group_id, **kwargs)
+    async def post(**kwargs) -> PostResponseModel | None:
+        try:
+            return await api.wall.post(owner_id=ban_reason_group_id, **kwargs)
+        except VKAPIError:
+            return None
 
     @staticmethod
     async def get_short_link(link: str) -> str:
@@ -130,7 +130,7 @@ class VKHandler:
         return result.short_url
 
     @staticmethod
-    async def get_photos(photos: str | list) -> list[PhotosPhoto]:
+    async def get_photos(photos: str | list) -> PhotosPhoto | list[PhotosPhoto]:
         """Returns photos data from VK
 
         :param photos: each photo should be in format "photo<owner>_<photo_id>_<access_key>"
