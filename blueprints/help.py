@@ -17,7 +17,7 @@ get_json = JSONHandler(project_path / "formatted.json").get_data
 )
 async def get_abbreviations(message: Message) -> None:
     abbreviations_dict = get_json().get("abbreviations")
-    formatted_abbreviations = await DictionaryFuncs.dict_to_string(
+    formatted_abbreviations = DictionaryFuncs.dict_to_string(
         dictionary=abbreviations_dict,
         prefix="-",
         postfix=">",
@@ -38,9 +38,9 @@ async def moderator_helper(message: Message) -> None:
         "• <user> - ссылка на страницу либо упоминание через @",
         '• <reason> - "ключ" для комментария бана. Для уточнения введи команду "Сокращения"',
         "• <time> - срок бана",
-        "---> Бан https://vk.com/steel_wg оффтоп день",
-        "---> Бан vk.com/steel_wg нац пермач",
-        "---> Бан @steel_wg оп+ор+оу+оа месяц",
+        "---> Бан https://vk.com/steel_lesta оффтоп день",
+        "---> Бан vk.com/steel_lesta нац пермач",
+        "---> Бан @steel_lesta оп+ор+оу+оа месяц",
         "⚠️ Для банов от недели и выше требуются скриншоты для публикации в баню",
         "⚠️ Для пермачей используйте один из следующих вариантов:",
         "---> <time> - ничего не указывать / перм / пермач / навсегда",
@@ -96,10 +96,8 @@ async def moderator_helper(message: Message) -> None:
 async def legal_abbreviations(message: Message) -> None:
     abbreviations_dict = get_json().get("ltabbreviations")
     games_abbreviations_dict = get_json().get("games")
-    abbreviations_dict = await DictionaryFuncs.dict_to_string(abbreviations_dict)
-    games_abbreviations_dict = await DictionaryFuncs.dict_to_string(
-        games_abbreviations_dict
-    )
+    abbreviations_dict = DictionaryFuncs.dict_to_string(abbreviations_dict)
+    games_abbreviations_dict = DictionaryFuncs.dict_to_string(games_abbreviations_dict)
     result_string = (
         "Список доступных сокращений:\n"
         + abbreviations_dict
