@@ -42,9 +42,6 @@ class VKHandler:
         if not matched:
             raise ObjectInformationReError
 
-        if LinkHandler.is_group(matched):
-            raise InvalidObjectRequestError
-
         fields = fields or ["screen_name"]
         if "screen_name" not in fields:
             fields.append("screen_name")
@@ -63,9 +60,6 @@ class VKHandler:
         matched = await get_id_from_text(group)
         if not matched:
             raise ObjectInformationReError
-
-        if not LinkHandler.is_group(matched):
-            raise InvalidObjectRequestError
 
         fields = fields or ["screen_name"]
         if "screen_name" not in fields:
@@ -88,21 +82,14 @@ class VKHandler:
         :param url: url to get object info
         :return: ObjectInfo or raises ObjectInformationRequestError
         """
-        user_info = None
-        group_info = None
+        is_group = True
         try:
-            group_info = await VKHandler.get_group_info(url)
-        except (ObjectInformationRequestError, InvalidObjectRequestError):
-            user_info = await VKHandler.get_user_info(url)
+            object_info = await VKHandler.get_group_info(url)
+        except ObjectInformationRequestError:
+            is_group = False
+            object_info = await VKHandler.get_user_info(url)
 
-        if user_info is None and group_info is None:
-            raise ObjectInformationRequestError
-
-        response = {
-            "object": group_info or user_info,
-            "is_group": group_info is not None,
-        }
-        return ObjectInfo(**response)
+        return ObjectInfo(object=object_info, is_group=is_group)
 
     @staticmethod
     async def ban(*args, **kwargs) -> int:
