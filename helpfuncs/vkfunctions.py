@@ -100,7 +100,7 @@ class VKHandler:
 
         response = {
             "object": group_info or user_info,
-            "is_group": group_info is None,
+            "is_group": group_info is not None,
         }
         return ObjectInfo(**response)
 
