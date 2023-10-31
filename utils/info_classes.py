@@ -6,10 +6,10 @@ from pydantic.dataclasses import dataclass
 @dataclass
 class UserInfo:
     id: int
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    full_name: Optional[str] = None
-    screen_name: Optional[str] = None
+    first_name: str = ""
+    last_name: str = ""
+    full_name: str = ""
+    screen_name: str = ""
 
     def __post_init__(self) -> None:
         if self.first_name and self.last_name:
@@ -32,3 +32,17 @@ class GroupInfo:
 class ObjectInfo:
     object: UserInfo | GroupInfo
     is_group: bool
+
+
+@dataclass
+class BannerInfo:
+    moderator: StuffInfo
+    key: str
+
+
+@dataclass
+class BanRegistrationInfo:
+    banner_info: BannerInfo
+    user_info: UserInfo
+    comment: str
+    ban_time: str
