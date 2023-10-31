@@ -1,6 +1,8 @@
 from functools import wraps
 from typing import Optional, TYPE_CHECKING
 
+from vkbottle import VKAPIError
+
 if TYPE_CHECKING:
     from vkbottle.user import Message
 
@@ -30,13 +32,7 @@ class InvalidObjectRequestError(InformationError):
     pass
 
 
-class VKAPIRequestError(InformationError):
-    pass
-
-
-def handle_errors_decorator(
-    func, custom_exc: Optional[dict[InformationError, str]] = None
-):
+def handle_errors_decorator(func, custom_exc: Optional[dict[Exception, str]] = None):
     if custom_exc is None:
         custom_exc = {}
 
@@ -51,7 +47,7 @@ def handle_errors_decorator(
             await message.answer(
                 "Не удалось найти информацию об объекте по указанной ссылке"
             )
-        except VKAPIRequestError:
+        except VKAPIError:
             await message.answer("Ошибка при выполнении VK API запроса")
         except Exception as e:
             if e not in custom_exc:
