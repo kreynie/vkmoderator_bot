@@ -198,10 +198,6 @@ class LinkHandler:
             return matched_link.group(1)
         return matched_link.group(0)
 
-    @staticmethod
-    def is_group(id_: str) -> bool:
-        return id_.startswith("club")
-
 
 async def async_list_generator(lst: list[Any]):
     for key in lst:

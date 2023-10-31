@@ -5,14 +5,13 @@ from utils.info_classes import GroupInfo, UserInfo, ObjectInfo
 from utils.exceptions import (
     ObjectInformationReError,
     ObjectInformationRequestError,
-    InvalidObjectRequestError,
 )
 from vkbottle import VKAPIError
 from vkbottle.tools import PhotoWallUploader
-from vkbottle_types.responses.wall import GetCommentsResponseModel, PostResponseModel
+from vkbottle_types.responses.wall import PostResponseModel
 from vkbottle_types.responses.photos import PhotosPhoto
 
-from .functions import LinkHandler, PhotoHandler, async_list_generator, get_id_from_text
+from .functions import PhotoHandler, async_list_generator, get_id_from_text
 
 
 class VKHandler:
@@ -42,9 +41,6 @@ class VKHandler:
         if not matched:
             raise ObjectInformationReError
 
-        if LinkHandler.is_group(matched):
-            raise InvalidObjectRequestError
-
         fields = fields or ["screen_name"]
         if "screen_name" not in fields:
             fields.append("screen_name")
@@ -63,9 +59,6 @@ class VKHandler:
         matched = await get_id_from_text(group)
         if not matched:
             raise ObjectInformationReError
-
-        if not LinkHandler.is_group(matched):
-            raise InvalidObjectRequestError
 
         fields = fields or ["screen_name"]
         if "screen_name" not in fields:
@@ -88,21 +81,14 @@ class VKHandler:
         :param url: url to get object info
         :return: ObjectInfo or raises ObjectInformationRequestError
         """
-        user_info = None
-        group_info = None
+        is_group = True
         try:
-            group_info = await VKHandler.get_group_info(url)
-        except (ObjectInformationRequestError, InvalidObjectRequestError):
-            user_info = await VKHandler.get_user_info(url)
+            object_info = await VKHandler.get_group_info(url)
+        except ObjectInformationRequestError:
+            is_group = False
+            object_info = await VKHandler.get_user_info(url)
 
-        if user_info is None and group_info is None:
-            raise ObjectInformationRequestError
-
-        response = {
-            "object": group_info or user_info,
-            "is_group": group_info is not None,
-        }
-        return ObjectInfo(**response)
+        return ObjectInfo(object=object_info, is_group=is_group)
 
     @staticmethod
     async def ban(*args, **kwargs) -> int:
