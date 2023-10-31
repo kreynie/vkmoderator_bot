@@ -28,7 +28,7 @@ class DictionaryFuncs:
     separator = "."
 
     @classmethod
-    async def find_key_path(cls, dictionary: dict, target_key: str) -> str | None:
+    def find_key_path(cls, dictionary: dict, target_key: str) -> str | None:
         """
         Find the path to a key in a nested dictionary.
         Example:
@@ -41,13 +41,13 @@ class DictionaryFuncs:
             if key == target_key:
                 return key
             elif isinstance(value, dict):
-                subpath = await cls.find_key_path(value, target_key)
+                subpath = cls.find_key_path(value, target_key)
                 if subpath:
                     return f"{key}{cls.separator}{subpath}"
         return None
 
     @classmethod
-    async def add_value(
+    def add_value(
         cls, dictionary: dict, target_key: str, new_value: Any
     ) -> tuple[Literal["success", "exists"], dict]:
         """
@@ -60,7 +60,7 @@ class DictionaryFuncs:
             ``success``: succeeded, new dictionary
         """
         path_parts = target_key.split(cls.separator)
-        target_path = await cls.find_key_path(dictionary, path_parts[-1])
+        target_path = cls.find_key_path(dictionary, path_parts[-1])
         if target_path is not None:
             return "exists", dictionary
 
@@ -73,7 +73,7 @@ class DictionaryFuncs:
         return "success", dictionary
 
     @classmethod
-    async def edit_value(
+    def edit_value(
         cls, dictionary: dict, target_key: str, new_value: Any
     ) -> tuple[str, dict]:
         """
@@ -96,7 +96,7 @@ class DictionaryFuncs:
         return "success", current_dict
 
     @classmethod
-    async def remove_key(cls, dictionary: dict, target_key: str) -> tuple[str, dict]:
+    def remove_key(cls, dictionary: dict, target_key: str) -> tuple[str, dict]:
         """
         Remove an existing key in a nested dictionary.
         Example:
@@ -117,7 +117,7 @@ class DictionaryFuncs:
         return "success", current_dict
 
     @classmethod
-    async def dict_to_string(
+    def dict_to_string(
         cls,
         dictionary: dict,
         prefix: str = "-",
@@ -140,7 +140,7 @@ class DictionaryFuncs:
             value = dictionary[key]
             if isinstance(value, dict):
                 result += f"{prefix * indent + postfix} {key}:\n"
-                result += f"{cls.dict_to_string(value, indent * 2)}"
+                result += f"{cls.dict_to_string(value, indent=indent * 2)}"
             else:
                 result += f"{prefix * indent + postfix} {key}{separator} {value}\n"
         return result
