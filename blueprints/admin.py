@@ -21,11 +21,13 @@ admin_labeler.custom_rules["access"] = CheckPermissions
 )
 @handle_errors_decorator
 async def change_rights(
-    message: Message, user: str = "", group: str = "", value: int = 0
+    message: Message,
+    user: str = "",
+    group: str = "",
+    value: int = 0,
 ) -> None:
     if not user or not group or not value:
-        await message.answer("Correct form: Права <user> <group> <value:int>")
-        return
+        return await message.answer("Correct form: Права <user> <group> <value:int>")
 
     user_info = await VKHandler.get_user_info(user)
 
@@ -35,10 +37,8 @@ async def change_rights(
         case "legal":
             code = await legal_db.edit_user_allowance(user_info.id, value)
         case _:
-            await message.answer('use "mod" or "legal" group')
-            return
+            return await message.answer('use "mod" or "legal" group')
 
     if code:
-        await message.answer("Succeeded")
-    else:
-        await message.answer("Failed")
+        return await message.answer("Succeeded")
+    await message.answer("Failed")
