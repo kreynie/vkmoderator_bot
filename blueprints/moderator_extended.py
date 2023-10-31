@@ -1,3 +1,5 @@
+from typing import Callable
+
 from vkbottle.user import Message, UserLabeler
 
 from config import moderator_db, project_path, users_db
@@ -30,26 +32,23 @@ async def add_moderator(
     key: int = None,
 ) -> None:
     if key is None:
-        await message.answer("Забыл МВ")
-        return
+        return await message.answer("Забыл МВ")
     if user is None:
-        await message.answer("Забыл ссылку на страницу!")
-        return
+        return await message.answer("Забыл ссылку на страницу!")
 
     user_info = await VKHandler.get_user_info(user)
 
     if await moderator_db.has_user(user_info.id):
-        await message.answer("Пользователь уже есть в списке")
-        return
+        return await message.answer("Пользователь уже есть в списке")
 
     if not await users_db.has_user(user_info.id):
         await users_db.add_user(user_info.id, user_info.first_name, user_info.last_name)
 
-    code = await moderator_db.add_user(user_info.id, key, 1)
-    if code:
-        await message.answer("Добавлен")
-    else:
-        await message.answer("Что-то пошло не так")
+    is_added = await moderator_db.add_user(user_info.id, key, 1)
+    if is_added:
+        return await message.answer("Добавлен")
+
+    await message.answer("Что-то пошло не так")
 
 
 @moderator_extended_labeler.private_message(
@@ -62,14 +61,12 @@ async def add_moderator(
 @handle_errors_decorator
 async def delete_moderator(message: Message, user: str = None) -> None:
     if user is None:
-        await message.answer("Нет ссылки на страницу!")
-        return
+        return await message.answer("Нет ссылки на страницу!")
 
     user_info = await VKHandler.get_user_info(user)
 
     if not await moderator_db.has_user(user_info.id):
-        await message.answer("Пользователя нет в списке")
-        return
+        return await message.answer("Пользователя нет в списке")
 
     code = await moderator_db.remove_user(user_info.id)
     if code:
@@ -85,7 +82,7 @@ async def delete_moderator(message: Message, user: str = None) -> None:
 async def list_moderators(message: Message) -> None:
     leads = await moderator_db.get_all(condition={"allowance =": 3})
     moderators = leads + await moderator_db.get_all(condition={"allowance <>": 3})
-    reformatted = await ReformatHandler.moderator_list(moderators, "moderators")
+    reformatted = ReformatHandler.moderator_list(moderators, "moderators")
     await message.answer(
         f"Модераторы с правами у бота:\n{reformatted}"
         if reformatted
@@ -107,21 +104,14 @@ async def add_abbreviation(
     full_text: str = None,
 ) -> None:
     if abbreviation is None or full_text is None:
-        await message.answer("Забыл сокращение или полный текст")
-        return
-    formatted_dict = formatted_json.get_data()
-    result, updated_abbreviations = await DictionaryFuncs.add_value(
-        formatted_dict["abbreviations"],
-        abbreviation,
-        full_text.lower(),
+        return await message.answer("Забыл сокращение или полный текст")
+    reply = handle_abbreviation(
+        abbreviation=abbreviation,
+        action=DictionaryFuncs.add_value,
+        action_success_message="добавлено",
+        full_text=full_text,
     )
-    match result:
-        case "success":
-            formatted_dict["abbreviations"] = updated_abbreviations
-            formatted_json.save_data(formatted_dict)
-            await message.answer(f"Сокращение «{abbreviation}» добавлено")
-        case "exists":
-            await message.answer(f"Сокращение «{abbreviation}» уже есть в списке")
+    await message.answer(reply)
 
 
 @moderator_extended_labeler.private_message(
@@ -138,23 +128,14 @@ async def edit_abbreviation(
     full_text: str = None,
 ) -> None:
     if abbreviation is None or full_text is None:
-        await message.answer("Забыл сокращение или полный текст")
-        return
-    formatted_dict = formatted_json.get_data()
-    result, updated_abbreviations = await DictionaryFuncs.edit_value(
-        formatted_dict,
-        f"abbreviations{DictionaryFuncs.separator}{abbreviation}",
-        full_text.lower(),
+        return await message.answer("Забыл сокращение или полный текст")
+    reply = handle_abbreviation(
+        abbreviation=abbreviation,
+        action=DictionaryFuncs.edit_value,
+        action_success_message="изменено",
+        full_text=full_text,
     )
-    match result:
-        case "success":
-            formatted_dict["abbreviations"] = updated_abbreviations
-            formatted_json.save_data(formatted_dict)
-            await message.answer(f"Сокращение «{abbreviation}» изменено")
-        case "not_found":
-            await message.answer(f"Сокращения «{abbreviation}» нет в списке")
-        case _:
-            await message.answer(f"Что-то пошло не так. Код ошибки: {result}")
+    await message.answer(reply)
 
 
 @moderator_extended_labeler.private_message(
@@ -163,18 +144,36 @@ async def edit_abbreviation(
 )
 async def remove_abbreviation(message: Message, abbreviation: str = None) -> None:
     if abbreviation is None:
-        await message.answer("Забыл сокращение")
-        return
-    formatted_dict = formatted_json.get_data()
-    result, updated_abbreviations = await DictionaryFuncs.remove_key(
-        formatted_dict, f"abbreviations{DictionaryFuncs.separator}{abbreviation}"
+        return await message.answer("Забыл сокращение")
+    reply = handle_abbreviation(
+        abbreviation=abbreviation,
+        action=DictionaryFuncs.remove_key,
+        action_success_message="удалено",
+        full_text=None,
     )
+    await message.answer(reply)
+
+
+def handle_abbreviation(
+    abbreviation: str,
+    action: Callable,
+    action_success_message: str,
+    full_text: str | None,
+) -> str:
+    formatted_dict = formatted_json.get_data()
+
+    result, updated_abbreviations = action(
+        formatted_dict,
+        f"abbreviations{DictionaryFuncs.separator}{abbreviation}",
+        full_text,
+    )
+
     match result:
         case "success":
             formatted_dict["abbreviations"] = updated_abbreviations
             formatted_json.save_data(formatted_dict)
-            await message.answer(f"Сокращение «{abbreviation}» удалено")
+            return f"Сокращение «{abbreviation}» {action_success_message}"
+        case "exists":
+            return f"Сокращение «{abbreviation}» уже есть в списке"
         case "not_found":
-            await message.answer(f"Сокращения «{abbreviation}» нет в списке")
-        case _:
-            await message.answer(f"Что-то пошло не так. Код ошибки: {result}")
+            return f"Сокращения «{abbreviation}» нет в списке"

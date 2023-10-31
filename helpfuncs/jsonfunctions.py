@@ -96,7 +96,13 @@ class DictionaryFuncs:
         return "success", current_dict
 
     @classmethod
-    def remove_key(cls, dictionary: dict, target_key: str) -> tuple[str, dict]:
+    def remove_key(
+        cls,
+        dictionary: dict,
+        target_key: str,
+        *args,
+        **kwargs,
+    ) -> tuple[str, dict]:
         """
         Remove an existing key in a nested dictionary.
         Example:
