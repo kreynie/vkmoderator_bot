@@ -24,20 +24,20 @@ class ReformatHandler:
     def __init__(self, ban_time: str | None) -> None:
         self.ban_time = ban_time
 
-    async def time(self) -> int | None:
+    def time(self) -> int | None:
         if formatted_time.get(self.ban_time) is None:
             return None
         return int(time() + (formatted_time.get(self.ban_time) * 3600))
 
-    async def time_to_text(self) -> str | None:
+    def time_to_text(self) -> str | None:
         if self.ban_time in (None, "", "перм", "навсегда", "пермач"):
             return "навсегда"
         if formatted_time.get(self.ban_time) is None:
             return None
-        return f"на {self.ban_time}"
+        return self.ban_time
 
     @staticmethod
-    async def comment(comment: str) -> str | None:
+    def comment(comment: str) -> str | None:
         if "+" in comment:
             result = [
                 formatted_abbreviations.get(value)
@@ -51,7 +51,7 @@ class ReformatHandler:
         return result.capitalize() if result else None
 
     @staticmethod
-    async def legal(
+    def legal(
         type_: Literal["abbreviations", "games"],
         abbreviation: str,
     ) -> str | None:
@@ -61,7 +61,7 @@ class ReformatHandler:
             return formatted_legal_abbreviations.get(abbreviation)
 
     @staticmethod
-    async def generate_legal_public_row(
+    def generate_legal_public_row(
         violator_link: str,
         reason: str,
         violation_link: str,
@@ -88,7 +88,7 @@ class ReformatHandler:
         return "+".join(result_string)
 
     @staticmethod
-    async def generate_legal_user_row(
+    def generate_legal_user_row(
         violator_link: str,
         reason: str,
         violation_link: str,
@@ -114,19 +114,17 @@ class ReformatHandler:
         return "+".join(result_string)
 
     @staticmethod
-    async def sheets_row(is_group: bool, **kwargs) -> str:
+    def sheets_row(is_group: bool, **kwargs) -> str:
         if is_group:
-            return await ReformatHandler.generate_legal_public_row(**kwargs)
-        return await ReformatHandler.generate_legal_user_row(**kwargs)
+            return ReformatHandler.generate_legal_public_row(**kwargs)
+        return ReformatHandler.generate_legal_user_row(**kwargs)
 
     @staticmethod
-    async def moderator_id(
-        allowance: int, prefix_base: str | Literal["МВ", "LT"]
-    ) -> str:
+    def moderator_id(allowance: int, prefix_base: str | Literal["МВ", "LT"]) -> str:
         return "S" + prefix_base if allowance == 3 else prefix_base
 
     @staticmethod
-    async def moderator_list(
+    def moderator_list(
         moderator_dict: List[StuffInfo],
         group: Literal["moderators", "legal"],
     ) -> str:
@@ -134,9 +132,7 @@ class ReformatHandler:
         for moderator in moderator_dict:
             if moderator.key >= 0:
                 prefix_base = "МВ" if group == "moderators" else "LT"
-                prefix = await ReformatHandler.moderator_id(
-                    moderator.allowance, prefix_base
-                )
+                prefix = ReformatHandler.moderator_id(moderator.allowance, prefix_base)
                 r.append(
                     f"@id{moderator.id}"
                     f"({moderator.full_name}) "
@@ -152,7 +148,7 @@ class PhotoHandler:
 
     async def get_photo(self) -> bytes | None:
         async with ClientSession() as session:
-            url = await PhotoHandler.get_photo_max_size_url(self.photo)
+            url = PhotoHandler.get_photo_max_size_url(self.photo)
             async with session.get(url) as resp:
                 if resp.status == 200:
                     photo = await to_thread(io.BytesIO)
@@ -161,7 +157,7 @@ class PhotoHandler:
         return None
 
     @staticmethod
-    async def get_photo_max_size_url(photo: list) -> str:
+    def get_photo_max_size_url(photo: list) -> str:
         """get_photo_max_size_url
 
         Returns:
