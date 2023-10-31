@@ -6,7 +6,6 @@ from utils.exceptions import (
     ObjectInformationReError,
     ObjectInformationRequestError,
     InvalidObjectRequestError,
-    VKAPIRequestError,
 )
 from vkbottle import VKAPIError
 from vkbottle.tools import PhotoWallUploader
