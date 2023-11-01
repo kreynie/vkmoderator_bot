@@ -3,6 +3,7 @@ from time import localtime, strftime
 from typing import TypeAlias
 
 from vkbottle.user import Message, UserLabeler
+from vkbottle_types.objects import PhotosPhoto
 
 from blueprints import rules
 from config import moderator_db
@@ -68,7 +69,7 @@ async def perform_ban(
     user_info: info_classes.UserInfo,
     ban_time: str,
     comment: str,
-    attachments: list | None = None,
+    attachments: list[PhotosPhoto],
 ) -> ReturnResult:
     full_comment = funcs.get_reformatted_comment(comment)
     ban_time_text = funcs.time_to_text(ban_time)
@@ -80,7 +81,7 @@ async def perform_ban(
         return None, "Проверь ВРЕМЯ бана"
 
     is_post_needed = ban_time_text not in ("час", "сутки", "день") or comment == "ода"
-    if is_post_needed and attachments is None:
+    if is_post_needed and not attachments:
         return None, "Проверь картинки для бани"
 
     banner = await get_banner_info(banner_vk_id)
@@ -108,7 +109,7 @@ async def perform_ban(
             banner_info=banner,
             user_info=user_info,
             comment=comment,
-            ban_time=ban_time,
+            ban_time=ban_time_text,
         )
         post_info = await post(ban_info, attachments)
         post_info = f"\n\n{post_info}"
