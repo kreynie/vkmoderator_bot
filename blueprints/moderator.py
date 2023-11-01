@@ -4,23 +4,22 @@ from typing import TypeAlias
 
 from vkbottle.user import Message, UserLabeler
 
+from blueprints import rules
 from config import moderator_db
-from helpfuncs import VKHandler
-from helpfuncs.functions import ReformatHandler
+from helpfuncs import functions as funcs, vkfunctions as vkf
+from utils import info_classes
 from utils.exceptions import handle_errors_decorator
-from utils.info_classes import BannerInfo, BanRegistrationInfo, UserInfo
-from .rules import CheckPermissions, Groups, Rights
 
 moderator_labeler = UserLabeler()
 moderator_labeler.vbml_ignore_case = True
-moderator_labeler.custom_rules["access"] = CheckPermissions
+moderator_labeler.custom_rules["access"] = rules.CheckPermissions
 
 
 ReturnResult: TypeAlias = tuple[str | None, str | None]
 
 
 @moderator_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.LOW],
+    access=[rules.Groups.MODERATOR, rules.Rights.LOW],
     text=[
         "Бан <user> <comment> <ban_time>",
         "Бан <user> <comment>",
@@ -43,8 +42,8 @@ async def ban(
     if not comment:
         return await message.answer("Забыл причину бана")
 
-    user_info = await VKHandler.get_user_info(user)
-    already_banned = await VKHandler.check_if_banned(user_info.id)
+    user_info = await vkf.get_user_info(user)
+    already_banned = await vkf.check_if_banned(user_info.id)
     if already_banned:
         return await message.answer("Пользователь уже забанен в группе")
 
@@ -66,14 +65,13 @@ async def ban(
 
 async def perform_ban(
     banner_vk_id: int,
-    user_info: UserInfo,
+    user_info: info_classes.UserInfo,
     ban_time: str,
     comment: str,
     attachments: list | None = None,
 ) -> ReturnResult:
-    reformatter = ReformatHandler(ban_time)
-    full_comment = reformatter.comment(comment)
-    ban_time_text = reformatter.time_to_text()
+    full_comment = funcs.get_reformatted_comment(comment)
+    ban_time_text = funcs.time_to_text(ban_time)
 
     if full_comment is None:
         return None, 'Проверь ПРИЧИНУ бана (команда "сокращения")'
@@ -87,13 +85,13 @@ async def perform_ban(
 
     banner = await get_banner_info(banner_vk_id)
 
-    time_unix = reformatter.time()
+    time_unix = funcs.calculate_unix_time_after_period(ban_time)
 
     ftime = "навсегда"
     if time_unix is not None:
         ftime = f"Болеть будет до {strftime('%d.%m.%y %H:%M', localtime(time_unix))}"
 
-    result = await VKHandler.ban(
+    result = await vkf.ban(
         owner_id=user_info.id,
         end_date=time_unix,
         reason=0,
@@ -106,7 +104,7 @@ async def perform_ban(
 
     post_info = ""
     if is_post_needed:
-        ban_info = BanRegistrationInfo(
+        ban_info = info_classes.BanRegistrationInfo(
             banner_info=banner,
             user_info=user_info,
             comment=comment,
@@ -118,19 +116,20 @@ async def perform_ban(
     return f"{user_info.full_name} получил банхаммером\n{ftime}{post_info}", None
 
 
-async def get_banner_info(user_vk_id: int) -> BannerInfo:
+async def get_banner_info(user_vk_id: int) -> info_classes.BannerInfo:
     banner = await moderator_db.get_user_by_id(user_vk_id)
-    level = ReformatHandler.moderator_id(banner.allowance, "МВ")
-    banner_key = level + str(banner.key)
-    return BannerInfo(moderator=banner, key=banner_key)
+    prefix = funcs.get_moderator_prefix(banner.allowance, "МВ")
+    banner_key = prefix + str(banner.key)
+    return info_classes.BannerInfo(moderator=banner, key=banner_key)
 
 
 @handle_errors_decorator
 async def post(
-    ban_info: BanRegistrationInfo,
+    message: Message,  # required for decorator
+    ban_info: info_classes.BanRegistrationInfo,
     photos: list,
 ) -> str:
-    uploaded_photos = await VKHandler.upload_images(photos)
+    uploaded_photos = await vkf.upload_images(photos)
     reply = (
         f"{ban_info.user_info.full_name}",
         f"https://vk.com/id{ban_info.user_info.id}",
@@ -138,7 +137,7 @@ async def post(
         f"@id{ban_info.banner_info.moderator.id}({ban_info.banner_info.key})",
     )
 
-    post_result = await VKHandler.post(
+    post_result = await vkf.post(
         from_group=True,
         message="\n".join(reply),
         attachments=uploaded_photos,

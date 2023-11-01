@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 
 
@@ -13,3 +14,8 @@ class Groups(Enum):
     ANY = 0
     MODERATOR = 1
     LEGAL = 2
+
+
+class SheetsNames(Enum):
+    groups = f"Сообщества ({datetime.now():%Y})"
+    users = f"Пользователи ({datetime.now():%Y})"

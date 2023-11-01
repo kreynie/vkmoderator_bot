@@ -1,18 +1,18 @@
-from helpfuncs import DictionaryFuncs, JSONHandler
 from vkbottle.user import Message, UserLabeler
-from config import project_path
 
-from .rules import CheckPermissions, Groups, PermissionChecker, Rights
+from blueprints import rules
+from config import project_path
+from helpfuncs import DictionaryFuncs, JSONHandler
 
 help_labeler = UserLabeler()
 help_labeler.vbml_ignore_case = True
-help_labeler.custom_rules["access"] = CheckPermissions
+help_labeler.custom_rules["access"] = rules.CheckPermissions
 
 get_json = JSONHandler(project_path / "formatted.json").get_data
 
 
 @help_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.LOW],
+    access=[rules.Groups.MODERATOR, rules.Rights.LOW],
     text="сокращения",
 )
 async def get_abbreviations(message: Message) -> None:
@@ -24,7 +24,7 @@ async def get_abbreviations(message: Message) -> None:
 
 
 @help_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.LOW],
+    access=[rules.Groups.MODERATOR, rules.Rights.LOW],
     text=["помощь", "команды", "help"],
 )
 async def moderator_helper(message: Message) -> None:
@@ -44,9 +44,9 @@ async def moderator_helper(message: Message) -> None:
         "⚠️ Для пермачей используйте один из следующих вариантов:",
         "---> <time> - ничего не указывать / перм / пермач / навсегда",
     ]
-    current_permissions = await PermissionChecker.get_user_permissions(
+    current_permissions = await rules.PermissionChecker.get_user_permissions(
         message.from_id,
-        Groups.MODERATOR,
+        rules.Groups.MODERATOR,
     )
     if current_permissions >= 2:
         raw_help.extend(
@@ -90,7 +90,7 @@ async def moderator_helper(message: Message) -> None:
 
 
 @help_labeler.private_message(
-    access=[Groups.LEGAL, Rights.LOW],
+    access=[rules.Groups.LEGAL, rules.Rights.LOW],
     text="ЛТсокр",
 )
 async def legal_abbreviations(message: Message) -> None:
@@ -108,7 +108,7 @@ async def legal_abbreviations(message: Message) -> None:
 
 
 @help_labeler.private_message(
-    access=[Groups.LEGAL, Rights.LOW],
+    access=[rules.Groups.LEGAL, rules.Rights.LOW],
     text="ЛТпомощь",
 )
 async def legal_helper(message: Message) -> None:
@@ -128,8 +128,8 @@ async def legal_helper(message: Message) -> None:
         "ЛТ https://vk.com/id302266380 буст https://vk.com/wall302266380_4576 бб",
         "Вместе с командой не забудьте прикрепить к сообщению скриншот (-ы)",
     ]
-    current_permissions = await PermissionChecker.get_user_permissions(
-        message.from_id, Groups.LEGAL
+    current_permissions = await rules.PermissionChecker.get_user_permissions(
+        message.from_id, rules.Groups.LEGAL
     )
     if current_permissions >= 2:
         raw_help.extend(

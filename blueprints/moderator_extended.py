@@ -2,23 +2,20 @@ from typing import Callable
 
 from vkbottle.user import Message, UserLabeler
 
+from blueprints import rules
 from config import moderator_db, project_path, users_db
-from helpfuncs import DictionaryFuncs, JSONHandler, VKHandler
-from helpfuncs.functions import ReformatHandler
-from utils.exceptions import (
-    handle_errors_decorator,
-)
-from .rules import CheckPermissions, Groups, Rights
+from helpfuncs import DictionaryFuncs, functions as funcs, JSONHandler, vkfunctions as vkf
+from utils.exceptions import handle_errors_decorator
 
 moderator_extended_labeler = UserLabeler()
 moderator_extended_labeler.vbml_ignore_case = True
-moderator_extended_labeler.custom_rules["access"] = CheckPermissions
+moderator_extended_labeler.custom_rules["access"] = rules.CheckPermissions
 
 formatted_json = JSONHandler(project_path / "formatted.json")
 
 
 @moderator_extended_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.MIDDLE],
+    access=[rules.Groups.MODERATOR, rules.Rights.MIDDLE],
     text=[
         "Добмод <user> <key:int>",
         "Добмод <user>",
@@ -36,7 +33,7 @@ async def add_moderator(
     if user is None:
         return await message.answer("Забыл ссылку на страницу!")
 
-    user_info = await VKHandler.get_user_info(user)
+    user_info = await vkf.get_user_info(user)
 
     if await moderator_db.has_user(user_info.id):
         return await message.answer("Пользователь уже есть в списке")
@@ -52,7 +49,7 @@ async def add_moderator(
 
 
 @moderator_extended_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.MIDDLE],
+    access=[rules.Groups.MODERATOR, rules.Rights.MIDDLE],
     text=[
         "Удалмод <user>",
         "Удалмод",
@@ -63,7 +60,7 @@ async def delete_moderator(message: Message, user: str = None) -> None:
     if user is None:
         return await message.answer("Нет ссылки на страницу!")
 
-    user_info = await VKHandler.get_user_info(user)
+    user_info = await vkf.get_user_info(user)
 
     if not await moderator_db.has_user(user_info.id):
         return await message.answer("Пользователя нет в списке")
@@ -76,13 +73,13 @@ async def delete_moderator(message: Message, user: str = None) -> None:
 
 
 @moderator_extended_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.MIDDLE],
+    access=[rules.Groups.MODERATOR, rules.Rights.MIDDLE],
     text="Модсписок",
 )
 async def list_moderators(message: Message) -> None:
     leads = await moderator_db.get_all(condition={"allowance =": 3})
     moderators = leads + await moderator_db.get_all(condition={"allowance <>": 3})
-    reformatted = ReformatHandler.moderator_list(moderators, "moderators")
+    reformatted = funcs.get_moderator_list(moderators, "moderators")
     await message.answer(
         f"Модераторы с правами у бота:\n{reformatted}"
         if reformatted
@@ -91,7 +88,7 @@ async def list_moderators(message: Message) -> None:
 
 
 @moderator_extended_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.MIDDLE],
+    access=[rules.Groups.MODERATOR, rules.Rights.MIDDLE],
     text=[
         "Добсокр <abbreviation> <full_text>",
         "Добсокр <abbreviation>",
@@ -115,7 +112,7 @@ async def add_abbreviation(
 
 
 @moderator_extended_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.MIDDLE],
+    access=[rules.Groups.MODERATOR, rules.Rights.MIDDLE],
     text=[
         "Измсокр <abbreviation> <full_text>",
         "Измсокр <abbreviation>",
@@ -139,7 +136,7 @@ async def edit_abbreviation(
 
 
 @moderator_extended_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.MIDDLE],
+    access=[rules.Groups.MODERATOR, rules.Rights.MIDDLE],
     text=["Удалсокр <abbreviation>", "Удалсокр"],
 )
 async def remove_abbreviation(message: Message, abbreviation: str = None) -> None:

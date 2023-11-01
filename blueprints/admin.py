@@ -1,17 +1,17 @@
 from vkbottle.user import Message, UserLabeler
 
+from blueprints import rules
 from config import legal_db, moderator_db
-from helpfuncs import VKHandler
+from helpfuncs import vkfunctions as vkf
 from utils.exceptions import handle_errors_decorator
-from .rules import CheckPermissions, Groups, Rights
 
 admin_labeler = UserLabeler()
 admin_labeler.vbml_ignore_case = True
-admin_labeler.custom_rules["access"] = CheckPermissions
+admin_labeler.custom_rules["access"] = rules.CheckPermissions
 
 
 @admin_labeler.private_message(
-    access=[Groups.MODERATOR, Rights.ADMIN],
+    access=[rules.Groups.MODERATOR, rules.Rights.ADMIN],
     text=[
         "Права <user> <group> <value:int>",
         "Права <user> <group>",
@@ -29,7 +29,7 @@ async def change_rights(
     if not user or not group or not value:
         return await message.answer("Correct form: Права <user> <group> <value:int>")
 
-    user_info = await VKHandler.get_user_info(user)
+    user_info = await vkf.get_user_info(user)
 
     match group:
         case "mod":

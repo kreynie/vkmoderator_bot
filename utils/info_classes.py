@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal
 
 from pydantic.dataclasses import dataclass
 
@@ -9,7 +9,7 @@ class UserInfo:
     first_name: str = ""
     last_name: str = ""
     full_name: str = ""
-    screen_name: str = ""
+    screen_name: str | None = None
 
     def __post_init__(self) -> None:
         if self.first_name and self.last_name:
@@ -25,7 +25,7 @@ class StuffInfo(UserInfo):
 @dataclass
 class GroupInfo:
     id: int
-    screen_name: Optional[str] = None
+    screen_name: str | None = None
 
 
 @dataclass
@@ -46,3 +46,17 @@ class BanRegistrationInfo:
     user_info: UserInfo
     comment: str
     ban_time: str
+
+
+@dataclass
+class LegalBanRegistrationInfo:
+    game: str
+    is_group: bool
+    moderator_key: str
+    reason: str
+    screenshot_link: str
+    violation_link: str
+    violator_link: str
+    violator_screen_name: str | None
+    dialog_time: str | None = None
+    flea: Literal["TRUE", "FALSE"] | None = None

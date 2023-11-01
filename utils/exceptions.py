@@ -44,11 +44,9 @@ def handle_errors_decorator(func, custom_exc: Optional[dict[Exception, str]] = N
         except ObjectInformationReError:
             await message.answer("Ссылка на страницу должна быть полной и корректной")
         except ObjectInformationRequestError:
-            await message.answer(
-                "Не удалось найти информацию об объекте по указанной ссылке"
-            )
-        except VKAPIError:
-            await message.answer("Ошибка при выполнении VK API запроса")
+            await message.answer("Не удалось найти информацию об объекте по указанной ссылке")
+        except VKAPIError as e:
+            await message.answer(f"Ошибка при выполнении VK API запроса\n{e.code} - {e.description}")
         except Exception as e:
             if e not in custom_exc:
                 await message.answer("Произошла неизвестная ошибка")

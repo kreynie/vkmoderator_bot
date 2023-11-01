@@ -1,9 +1,10 @@
 from typing import List
 
-from config import legal_db, moderator_db
-from utils.enums import Groups, Rights
 from vkbottle.dispatch.rules import ABCRule
 from vkbottle.user import Message
+
+from config import legal_db, moderator_db
+from utils.enums import Groups, Rights
 
 
 class PermissionChecker:
