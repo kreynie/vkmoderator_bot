@@ -129,8 +129,7 @@ dmypy.json
 .pyre/
 
 # My stuff
-*.log
-test.py
+*.log.zip
 *.db
 google-api/
 formatted.json
