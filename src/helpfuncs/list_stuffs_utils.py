@@ -38,7 +38,7 @@ def get_stuffs_list(stuffs: Iterable[Stuff], group: StuffGroups) -> str:
             prefix = get_stuff_prefix(stuff.allowance, prefix_base)
             r.append(
                 f"@id{stuff.user.id}"
-                f"({stuff.user.first_name} {stuff.user.last_name}) "
+                f"({stuff.user.full_name}) "
                 f"({prefix}{stuff.key})"
             )
 

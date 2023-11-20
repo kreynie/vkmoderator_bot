@@ -183,7 +183,7 @@ async def send_reaction(peer_id: int, conversation_message_id: int, reaction_id:
     )
 
 
-async def invite_user(chat_id: int, user_id: int, visible_message_count: int | None = None):
+async def invite_chat_user(chat_id: int, user_id: int, visible_message_count: int | None = None):
     """
     Invites user to a chat
 
@@ -192,3 +192,9 @@ async def invite_user(chat_id: int, user_id: int, visible_message_count: int | N
     :param visible_message_count: Show invited user previous messages
     """
     await vk_api.messages.add_chat_user(chat_id=chat_id, user_id=user_id, visible_message_count=visible_message_count)
+
+
+async def remove_chat_user(chat_id: int, user_id: int | None = None, member_id: int | None = None):
+    assert all([user_id is None, member_id is None]), "At least one of user_id or member_id must be provided"
+
+    await vk_api.messages.remove_chat_user(chat_id=chat_id, user_id=user_id, member_id=member_id)

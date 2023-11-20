@@ -1,6 +1,6 @@
 from vkbottle.user import Message, rules, UserLabeler
 
-from src.helpfuncs.vkfunctions import get_user_info, send_reaction, invite_user
+from src.helpfuncs.vkfunctions import get_user_info, send_reaction, invite_chat_user, remove_chat_user
 from src.schemas import stuff, user
 from src.services.stuffs import StuffsService
 from src.utils.dependencies import UOWDep
@@ -41,7 +41,7 @@ async def add_new_stuff(
             if primary_chat_peer_enum.value % chat_id == 20:  # skip same chat (i.e. 2000000001 % 1 = 20)
                 continue
 
-            await invite_user(chat_id=chat_id, user_id=user_info.id)
+            await invite_chat_user(chat_id=chat_id, user_id=user_info.id)
             await async_sleep(1.5)
 
         await send_reaction(
@@ -68,3 +68,9 @@ async def remove_stuff(message: Message, uow: IUnitOfWork = UOWDep) -> None:
     stuff_info = await StuffsService().get_stuff_by(uow, user_id=user_id, group_id=StuffGroups.MODERATOR.value)
     stuff_schema = stuff.StuffDeleteSchema(id=stuff_info.id)
     await StuffsService().delete_stuff(uow, stuff_schema)
+    for chat_id in chat_ids.dict().values():
+        if primary_chat_peer_enum.value % chat_id == 20:  # skip same chat (i.e. 2000000001 % 1 = 20)
+            continue
+
+        await remove_chat_user(chat_id=chat_id, member_id=user_id)
+        await async_sleep(1.5)

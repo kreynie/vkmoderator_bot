@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vk-bot-moderator"
-version = "2.0.1"
+version = "2.0.2"
 description = ""
 authors = ["kreyNie <kreynie@vk.com>"]
 readme = "README.md"
