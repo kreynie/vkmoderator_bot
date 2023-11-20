@@ -40,7 +40,7 @@ async def check_hot_issues() -> None:
         hot_issues_processor.is_cache_updated = False
         issue: HotIssueSchema = hot_issues_processor.last_hot_issue
         issue_url = f"https://lesta.ru/support/ru/products/wotb/hot-issues/{issue.id}/"
-        send_chat_peer_id = ChatPeers.VISITING.value
+        send_chat_peer_id = ChatPeers.NEWS.value
         message = (f"{issue.title}\n"
                    f"Время публикации: {datetime.fromisoformat(issue.published):%d.%m.%Y в %H:%M }\n"
                    f"{issue_url}\n\n"
