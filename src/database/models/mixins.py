@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class ProvidesUserMixin:
     _user_back_populates: str | None = None
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
 
     @declared_attr
     @classmethod

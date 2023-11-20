@@ -133,7 +133,7 @@ async def post(
         f"{ban_info.user_info.full_name}",
         f"https://vk.com/id{ban_info.user_info.id}",
         f"{ban_info.comment} - {ban_info.ban_time}",
-        f"@id{ban_info.banner_info.moderator.id}({ban_info.banner_info.key})",
+        f"@id{ban_info.banner_info.moderator.user_id}({ban_info.banner_info.key})",
     )
 
     await vkf.post(
