@@ -14,6 +14,7 @@ async def startup_hot_issues_processor() -> None:
     await hot_issues_processor.initialize_cache()
 
 
+@logger.catch
 async def check_for_new_hot_issues():
     logger.debug("Checking for new hot issues...")
     new_issues = fetch_active_issues()
