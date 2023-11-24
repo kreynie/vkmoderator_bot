@@ -1,4 +1,3 @@
-from vkbottle.dispatch.rules.base import CommandRule
 from vkbottle.user import Message
 
 from config import project_path
