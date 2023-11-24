@@ -28,9 +28,9 @@ class CheckPermissions(ABCRule[Message]):
     def __init__(self, data: list[StuffGroups, Rights]) -> None:
         self.allowance_type, self.level = data
 
-    async def check(self, message: Message, uow: IUnitOfWork = UOWDep) -> bool:
+    async def check(self, message: Message, uow: IUnitOfWork = UOWDep) -> dict[str, int] | bool:
         max_permissions = await get_user_permissions(uow, message.from_id, StuffGroups.ANY)
         if max_permissions == Rights.ADMIN.value:
-            return True
+            return {"rights": max_permissions}
         permissions = await get_user_permissions(uow, message.from_id, self.allowance_type)
         return permissions >= self.level.value

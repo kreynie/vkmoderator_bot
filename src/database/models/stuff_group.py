@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class StuffGroup(Base):
     name: Mapped[str]
 
-    stuffs: Mapped["Stuff"] = relationship(back_populates="group", lazy="immediate")
+    stuffs: Mapped[list["Stuff"]] = relationship(back_populates="group", lazy="immediate")
 
     def to_read_model(self) -> StuffGroup:
         return StuffGroup.from_orm(self)

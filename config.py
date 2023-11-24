@@ -12,7 +12,7 @@ class BaseEnvSettings(BaseSettings):
         env_file_encoding = "utf-8"
 
 
-class DBSettings(BaseEnvSettings):
+class DBSettings(BaseSettings):
     url: str = f"sqlite+aiosqlite:///{project_path / 'db.db'}"
     echo: bool = False
 

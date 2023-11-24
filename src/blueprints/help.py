@@ -1,3 +1,4 @@
+from vkbottle.dispatch.rules.base import CommandRule
 from vkbottle.user import Message
 
 from config import project_path
@@ -26,7 +27,10 @@ async def get_abbreviations(message: Message) -> None:
     access=[rules.StuffGroups.MODERATOR, rules.Rights.LOW],
     text=["помощь", "команды", "help"],
 )
-async def moderator_helper(message: Message, uow: IUnitOfWork = UOWDep) -> None:
+async def moderator_helper(
+        message: Message,
+        rights: int,
+) -> None:
     raw_help = [
         "Использование бота:",
         "▶️ Сокращения - для просмотра всех доступных сокращений",
@@ -43,10 +47,7 @@ async def moderator_helper(message: Message, uow: IUnitOfWork = UOWDep) -> None:
         "⚠️ Для пермачей используйте один из следующих вариантов:",
         "---> <time> - ничего не указывать / перм / пермач / навсегда",
     ]
-    current_permissions = await rules.get_user_permissions(
-        uow, message.from_id, rules.StuffGroups.MODERATOR
-    )
-    if current_permissions >= 2:
+    if rights >= 2:
         raw_help.extend(
             (
                 "\n\n",
@@ -66,7 +67,7 @@ async def moderator_helper(message: Message, uow: IUnitOfWork = UOWDep) -> None:
             )
         )
 
-    if current_permissions >= 3:
+    if rights >= 3:
         raw_help.extend(
             (
                 "\n\n",
@@ -75,7 +76,7 @@ async def moderator_helper(message: Message, uow: IUnitOfWork = UOWDep) -> None:
             )
         )
 
-    if current_permissions >= 4:
+    if rights >= 4:
         raw_help.extend(
             (
                 "\n\n",
