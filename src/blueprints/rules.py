@@ -33,4 +33,4 @@ class CheckPermissions(ABCRule[Message]):
         if max_permissions == Rights.ADMIN.value:
             return {"rights": max_permissions}
         permissions = await get_user_permissions(uow, message.from_id, self.allowance_type)
-        return permissions >= self.level.value
+        return {"rights": permissions}
