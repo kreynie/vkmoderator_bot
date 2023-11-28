@@ -2,6 +2,7 @@ from src.schemas.hot_issues import HotIssueSchema, HotIssuesResponseModel
 from src.services.hot_issues import HotIssuesService
 from src.utils.dependencies import UOWDep
 from src.utils.unitofwork import IUnitOfWork
+from src.database import exceptions as db_exc
 from config import logger
 
 
@@ -59,8 +60,11 @@ class HotIssuesProcessor:
 
         if latest_issue.id not in self.cache:
             logger.debug(f"Found new issue with id: {latest_issue.id}, adding it")
-            new_issue = await self._hot_issues_service.add_issue(self._uow, issue_schema)
-            self.cache = {latest_issue.id: new_issue}
+            try:
+                issue = await self._hot_issues_service.add_issue(self._uow, issue_schema)
+            except db_exc.EntityAlreadyExists:
+                issue = await self._hot_issues_service.get_issue_by(self._uow, id=issue_schema.id)
+            self.cache = {latest_issue.id: issue}
             return
         logger.debug("No new issues were found")
 

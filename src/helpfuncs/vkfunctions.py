@@ -198,3 +198,8 @@ async def remove_chat_user(chat_id: int, user_id: int | None = None, member_id: 
     assert user_id is None and member_id is None, "At least one of user_id or member_id must be provided"
 
     await vk_api.messages.remove_chat_user(chat_id=chat_id, user_id=user_id, member_id=member_id)
+
+
+async def edit_manager(user_id: int, remove: bool = False):
+    role = "editor" if not remove else None
+    await vk_api.groups.edit_manager(group_id=groups_id_settings.ban_archive_group, user_id=user_id, role=role)

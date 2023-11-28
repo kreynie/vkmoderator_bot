@@ -1,6 +1,6 @@
 from typing import TypeAlias
 
-from vkbottle.user import Message, UserLabeler
+from vkbottle.user import Message
 from vkbottle_types.objects import PhotosPhoto
 
 from config import settings
@@ -140,12 +140,6 @@ async def get_legal_abbreviations(reason: str, game: str):
         abbreviation=game,
     )
     return reason, game_full
-
-
-async def get_screenshot(violator_link: str, violation_link: str | None) -> bytes | None:
-    if not violation_link:
-        return await funcs.screenshot(violator_link)
-    return await funcs.screenshot(violation_link, wallpost=True)
 
 
 def get_violator_links(target: VKObjectInfo) -> ViolatorLinks:

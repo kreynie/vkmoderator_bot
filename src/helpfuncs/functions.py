@@ -11,7 +11,6 @@ from vkbottle_types.objects import PhotosPhoto
 
 from config import project_path
 from src.helpfuncs.jsonfunctions import JSONHandler
-from src.helpfuncs.ssaver import ScreenSaver
 from src.schemas.registration import LegalBanRegistrationInfo
 
 json_handler = JSONHandler(project_path / "formatted.json")
@@ -106,7 +105,8 @@ def get_reformatted_comment(comment: str) -> str | None:
 
 
 async def get_photo(photo: PhotosPhoto) -> bytes | None:
-    """Get photo in bytes format
+    """
+    Get photo in bytes format
 
     :param photo: photo
     :return: bytes of photo or None
@@ -122,7 +122,8 @@ async def get_photo(photo: PhotosPhoto) -> bytes | None:
 
 
 def get_photo_max_size_url(photo: list[PhotosPhotoSizes]) -> str:
-    """Get url of max size photo from list of photo sizes
+    """
+    Get url of max size photo from list of photo sizes
 
     :param photo: list of photo sizes
     :return: photo url in original size
@@ -133,15 +134,6 @@ def get_photo_max_size_url(photo: list[PhotosPhotoSizes]) -> str:
             max_size = size.height
             max_size_index = index
     return photo[max_size_index].url
-
-
-async def screenshot(url: str, **kwargs) -> bytes | None:
-    if not get_vk_link(url):
-        return None
-    if not url.startswith("https://"):
-        url = "https://" + url
-
-    return await ScreenSaver(height=2160).screenshot(url, **kwargs)
 
 
 def get_vk_link(url: str, slug: bool = False) -> str | None:
@@ -171,7 +163,8 @@ async def get_id_from_text(user: str) -> str | None:
 
 
 def split_for_text_for_command(text: str) -> list[str]:
-    """Split text for vkbottle command correct validation.
+    """
+    Split text for vkbottle command correct validation.
 
     This function takes a command text as input and cascade deletes last parameter.
 

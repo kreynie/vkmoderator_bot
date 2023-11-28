@@ -1,6 +1,6 @@
 from vkbottle.user import Message, rules, UserLabeler
 
-from src.helpfuncs.vkfunctions import get_user_info, send_reaction, invite_chat_user, remove_chat_user
+from src.helpfuncs import vkfunctions as vkf
 from src.schemas import stuff, user
 from src.services.stuffs import StuffsService
 from src.utils.dependencies import UOWDep
@@ -26,7 +26,7 @@ async def add_new_stuff(
         uow: IUnitOfWork = UOWDep,
 ) -> None:
     try:
-        user_info = await get_user_info(invited_user)
+        user_info = await vkf.get_user_info(invited_user)
         new_user_schema = user.UserCreateSchema(**user_info.dict())
         new_moderator_schema = stuff.StuffCreateSchema(
             user_id=user_info.id, group_id=StuffGroups.MODERATOR.value, key=key, allowance=1
@@ -41,16 +41,16 @@ async def add_new_stuff(
             if primary_chat_peer_enum.value % chat_id == 20:  # skip same chat (i.e. 2000000001 % 1 = 20)
                 continue
 
-            await invite_chat_user(chat_id=chat_id, user_id=user_info.id)
+            await vkf.invite_chat_user(chat_id=chat_id, user_id=user_info.id)
             await async_sleep(1.5)
 
-        await send_reaction(
+        await vkf.send_reaction(
             peer_id=primary_chat_peer_enum.value,
             conversation_message_id=message.conversation_message_id,
             reaction_id=ReactionIDs.THUMB_UP.value,
         )
     except Exception:
-        await send_reaction(
+        await vkf.send_reaction(
             peer_id=primary_chat_peer_enum.value,
             conversation_message_id=message.conversation_message_id,
             reaction_id=ReactionIDs.QUESTION_MARKS.value,
@@ -72,5 +72,7 @@ async def remove_stuff(message: Message, uow: IUnitOfWork = UOWDep) -> None:
         if primary_chat_peer_enum.value % chat_id == 20:  # skip same chat (i.e. 2000000001 % 1 = 20)
             continue
 
-        await remove_chat_user(chat_id=chat_id, member_id=user_id)
+        await vkf.remove_chat_user(chat_id=chat_id, member_id=user_id)
         await async_sleep(1.5)
+
+    await vkf.edit_manager(user_id=user_id, remove=True)
