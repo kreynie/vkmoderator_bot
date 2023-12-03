@@ -84,15 +84,19 @@ class SQLAlchemyRepository(AbstractRepository):
         except sa_exc.SQLAlchemyError as e:
             raise db_exc.DatabaseException from e
 
-    async def find_last(self) -> S | None:
+    async def find_last(self, order_by: ColumnElement | None = None) -> S | None:
         """
         Find last row in the table.
 
         :return:
         """
         try:
-            stmt = select(self.model).order_by(self.model.id.desc()).limit(1)
-            return await self._execute_and_return_one(stmt)
+            stmt = select(self.model)
+            if order_by is not None:
+                stmt = stmt.order_by(order_by)
+            else:
+                stmt = stmt.order_by(self.model.id.desc())
+            return await self._execute_and_return_one(stmt.limit(1))
         except sa_exc.SQLAlchemyError as e:
             raise db_exc.DatabaseException from e
 

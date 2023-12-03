@@ -15,7 +15,7 @@ class HotIssuesService:
 
     async def get_last_issue(self, uow: IUnitOfWork) -> HotIssueSchema | None:
         async with uow:
-            return await uow.hot_issues.find_last()
+            return await uow.hot_issues.find_last(uow.hot_issues.model.published.desc())
 
     async def get_issues(self, uow: IUnitOfWork, offset: int = 0, limit: int = 5) -> list[HotIssueSchema]:
         async with uow:
