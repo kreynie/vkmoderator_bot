@@ -2,7 +2,6 @@ from src.schemas.hot_issues import HotIssueSchema, HotIssuesResponseModel
 from src.services.hot_issues import HotIssuesService
 from src.utils.dependencies import UOWDep
 from src.utils.unitofwork import IUnitOfWork
-from src.database import exceptions as db_exc
 from config import logger
 
 
@@ -10,40 +9,8 @@ class HotIssuesProcessor:
     def __init__(self, uow: IUnitOfWork):
         self._uow = uow
         self._hot_issues_service = HotIssuesService()
-        self.is_cache_updated: bool = False
-        self._cache: dict[int, HotIssueSchema] | dict = {}
-        self._last_hot_issue: HotIssueSchema | None = None
 
-    @property
-    def cache(self) -> dict[int, HotIssueSchema]:
-        return self._cache
-
-    @cache.setter
-    def cache(self, v: dict[int, HotIssueSchema]) -> None:
-        self.cache.update(v)
-        if v:
-            self.is_cache_updated = True
-            self.last_hot_issue = tuple(v.values())[0]
-
-    @property
-    def last_hot_issue(self) -> HotIssueSchema | None:
-        return self._last_hot_issue
-
-    @last_hot_issue.setter
-    def last_hot_issue(self, v: HotIssueSchema) -> None:
-        self._last_hot_issue = v
-
-    async def initialize_cache(self) -> None:
-        logger.info("Initializing cache for HotIssuesProcessor")
-        last_issue = await self._hot_issues_service.get_last_issue(self._uow)
-        if last_issue is None:
-            logger.debug("No issues was found in database, first cache will be empty")
-            self._cache = {}
-        else:
-            logger.debug(f"Adding last issue from database to cache with id: {last_issue.id}")
-            self._cache = {last_issue.id: last_issue}
-
-    async def process_issues(self, issues: HotIssuesResponseModel) -> None:
+    async def process_issues(self, issues: HotIssuesResponseModel) -> HotIssueSchema | None:
         latest_issue = issues.data[0]
         issue_details = latest_issue.translations.data[0]  # get only first translation version
         issue_schema = HotIssueSchema(
@@ -52,21 +19,17 @@ class HotIssuesProcessor:
             text=issue_details.text,
             published=latest_issue.published,
         )
-        if latest_issue.id in self.cache and latest_issue.published != self.cache[latest_issue.id].published:
-            logger.debug(f"Found updates in issue with id: {latest_issue.id}, updating")
-            updated_issue = await self._hot_issues_service.update_issue(self._uow, issue_schema)
-            self.cache = {latest_issue.id: updated_issue}
-            return
+        issue_in_db = await self._hot_issues_service.get_issue_by(self._uow, id=issue_schema.id)
+        if issue_in_db is not None and issue_schema.published == issue_in_db.published:
+            return logger.debug(f"Found existing issue with id: {latest_issue.id}, no updates needed")
 
-        if latest_issue.id not in self.cache:
+        if issue_in_db is not None and issue_schema.published != issue_in_db.published:
+            logger.debug(f"Found updates in issue with id: {latest_issue.id}, updating")
+            return await self._hot_issues_service.update_issue(self._uow, issue_schema)
+
+        if issue_in_db is None:
             logger.debug(f"Found new issue with id: {latest_issue.id}, adding it")
-            try:
-                issue = await self._hot_issues_service.add_issue(self._uow, issue_schema)
-            except db_exc.EntityAlreadyExists:
-                issue = await self._hot_issues_service.get_issue_by(self._uow, id=issue_schema.id)
-            self.cache = {latest_issue.id: issue}
-            return
-        logger.debug("No new issues were found")
+            return await self._hot_issues_service.add_issue(self._uow, issue_schema)
 
 
 hot_issues_processor = HotIssuesProcessor(UOWDep)
