@@ -27,7 +27,7 @@ def get_next_interval_for_hot_issues_checkout(
     return randint(minimum_minutes, maximum_minutes)
 
 
-@vk_loop_wrapper.interval(seconds=5)
+@vk_loop_wrapper.interval(minutes=get_next_interval_for_hot_issues_checkout())
 async def check_hot_issues() -> None:
     new_issue = await check_for_new_hot_issues()
     if new_issue is None:
