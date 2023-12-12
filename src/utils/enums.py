@@ -23,14 +23,15 @@ class SheetsNames(Enum):
 
 
 chat_ids = chats_id_settings
+chat_prefix_number = 2000000000
 
 
 class ChatPeers(IntEnum):
-    FLOOD = 2000000000 + chat_ids.flood
-    VISITING = 2000000000 + chat_ids.visiting
-    MODERATORS = 2000000000 + chat_ids.moderators
-    NEWS = 2000000000 + chat_ids.news
-    HELP_REQUESTS = 2000000000 + chat_ids.help_requests
+    FLOOD = chat_prefix_number + chat_ids.flood
+    VISITING = chat_prefix_number + chat_ids.visiting
+    MODERATORS = chat_prefix_number + chat_ids.moderators
+    NEWS = chat_prefix_number + chat_ids.news
+    HELP_REQUESTS = chat_prefix_number + chat_ids.help_requests
 
 
 class ReactionIDs(IntEnum):
