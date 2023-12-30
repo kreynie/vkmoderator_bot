@@ -56,7 +56,7 @@ async def remove_legal(
 
     user_info = await vkf.get_user_info(user)
 
-    stuff = await StuffsService().get_stuff_by(uow, user_id=user_info.id)
+    stuff = await StuffsService().get_stuff_by(uow, user_id=user_info.id, group_id=rules.StuffGroups.LEGAL.value)
     delete_stuff_schema = stuff_schema.StuffDeleteSchema(
         id=stuff.id, user_id=user_info.id, group_id=rules.StuffGroups.LEGAL.value
     )
