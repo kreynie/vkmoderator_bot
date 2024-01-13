@@ -38,7 +38,7 @@ async def add_new_stuff(
         await StuffsService().add_stuff(uow, complete_schema)
 
         for chat_id in chat_ids.dict().values():
-            if primary_chat_peer_enum.value - chat_prefix_number == chat_id:  # skip same chat
+            if primary_chat == chat_id:  # skip same chat
                 continue
 
             await vkf.invite_chat_user(chat_id=chat_id, user_id=user_info.id)
@@ -69,7 +69,7 @@ async def remove_stuff(message: Message, uow: IUnitOfWork = UOWDep) -> None:
     stuff_schema = stuff.StuffDeleteSchema(id=stuff_info.id)
     await StuffsService().delete_stuff(uow, stuff_schema)
     for chat_id in chat_ids.dict().values():
-        if primary_chat_peer_enum.value - 200000000 == chat_id:  # skip same chat
+        if primary_chat == chat_id:  # skip same chat
             continue
 
         await vkf.remove_chat_user(chat_id=chat_id, member_id=user_id)
