@@ -18,6 +18,7 @@ from src.utils.dependencies import UOWDep
 from src.utils.exceptions import handle_errors_decorator
 from src.utils.unitofwork import IUnitOfWork
 from .base_labeler import labeler
+from config import logger
 
 ReturnResult: TypeAlias = tuple[str | None, str | None]
 
@@ -143,9 +144,19 @@ async def post(
         f"@id{ban_info.banner_info.moderator.user_id}({ban_info.banner_info.key})",
     )
 
-    await vkf.post(
-        from_group=True,
-        message="\n".join(post_text),
-        attachments=uploaded_photos,
-    )
+    try:
+        await vkf.post(
+            from_group=True,
+            message="\n".join(post_text),
+            attachments=uploaded_photos,
+        )
+    except VKAPIError as e:
+        logger.error(e)
+        return (
+            "❌ Не удалось сделать пост в бане\n"
+            f"Ошибка на стороне ВК (код {e.code}):{e.description}"
+        )
+    except Exception as e:
+        logger.error(e)
+        return "❌ Не удалось сделать пост в бане."
     return "✔ Пост в бане опубликован"
