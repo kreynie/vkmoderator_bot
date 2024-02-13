@@ -26,7 +26,7 @@ ReturnResult: TypeAlias = tuple[str | None, str | None]
     access=[rules.StuffGroups.MODERATOR, rules.Rights.LOW],
     text=funcs.split_for_text_for_command("Бан <user> <comment> <ban_time>"),
 )
-@handle_errors_decorator(custom_exc={VKAPIError[100]: "❌ Не удалось сделать пост в бане"})
+@handle_errors_decorator()
 async def ban_user_in_group(
     message: Message,
     user: str = "",
@@ -56,7 +56,9 @@ async def ban_user_in_group(
     )
 
     if return_reason is not None:
-        return await message.answer(f"⚠️Ошибка получения информации\n{return_reason}")
+        return await message.answer(
+            f"⚠️Произошла ошибка во время попытки бана\n{return_reason}"
+        )
 
     await message.answer(ban_result)
     await asleep(3)
@@ -88,7 +90,9 @@ async def perform_ban(
 
     end_time_text = "навсегда"
     if time_unix is not None:
-        end_time_text = f"Болеть будет до {strftime('%d.%m.%y %H:%M', localtime(time_unix))}"
+        end_time_text = (
+            f"Болеть будет до {strftime('%d.%m.%y %H:%M', localtime(time_unix))}"
+        )
 
     result = await vkf.ban(
         owner_id=user_info.id,
@@ -112,7 +116,10 @@ async def perform_ban(
         post_info = await post(ban_info, attachments)
         post_info = f"\n\n{post_info}"
 
-    return f"{user_info.full_name} получил банхаммером\n{end_time_text}{post_info}", None
+    return (
+        f"{user_info.full_name} получил банхаммером\n{end_time_text}{post_info}",
+        None,
+    )
 
 
 async def get_banner_info(user_vk_id: int, uow: IUnitOfWork = UOWDep) -> BannerInfo:
