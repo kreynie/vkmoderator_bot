@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from pydantic import BaseModel, validator
 
-from src.utils.html_parser import remove_html_tags
+from src.utils.html_parser import convert_html_to_text
 
 
 class Translation(BaseModel):
@@ -12,7 +12,7 @@ class Translation(BaseModel):
 
     @validator("text")
     def remove_html_stuff(cls, text: str) -> str:
-        return remove_html_tags(text)
+        return convert_html_to_text(text)
 
 
 class Translations(BaseModel):

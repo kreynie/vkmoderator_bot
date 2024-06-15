@@ -1,29 +1,13 @@
-from html.parser import HTMLParser
+import html2text
 
 
-class HTMLTagsRemover(HTMLParser):
-    def __init__(self):
-        super().__init__(convert_charrefs=False)
-        self.reset()
-        self.convert_charrefs = True
-        self.fed = []
+def convert_html_to_text(html: str) -> str:
+    h = html2text.HTML2Text()
 
-    def handle_data(self, data):
-        self.fed.append(data)
+    h.ignore_links = True
+    h.ignore_images = True
+    h.emphasis_mark = ""
+    h.strong_mark = ""
 
-    def handle_entityref(self, name):
-        self.fed.append(f'&{name};')
-
-    def handle_charref(self, name):
-        self.fed.append(f'&#{name};')
-
-    def get_data(self):
-        return "".join(self.fed)
-
-
-def remove_html_tags(value: str) -> str:
-    remover = HTMLTagsRemover()
-
-    remover.feed(value)
-    remover.close()
-    return remover.get_data()
+    result = h.handle(html)
+    return result
