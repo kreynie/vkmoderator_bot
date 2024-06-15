@@ -1,4 +1,4 @@
-from src.loop_wrappers import vk_loop_wrapper
+from .loop_wrapper import vk_loop_wrapper
 from src.vkbottle_config import vk_api
 from config import logger
 
