@@ -16,4 +16,4 @@ class StuffGroup(Base):
     stuffs: Mapped[list["Stuff"]] = relationship(back_populates="group", lazy="immediate")
 
     def to_read_model(self) -> StuffGroup:
-        return StuffGroup.from_orm(self)
+        return StuffGroup.model_validate(self)

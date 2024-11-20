@@ -22,4 +22,4 @@ class User(Base):
     )
 
     def to_read_model(self) -> UserSchema:
-        return UserSchema.from_orm(self)
+        return UserSchema.model_validate(self)

@@ -10,4 +10,4 @@ class HotIssue(Base):
     published: Mapped[str] = mapped_column(index=True)
 
     def to_read_model(self) -> HotIssueSchema:
-        return HotIssueSchema.from_orm(self)
+        return HotIssueSchema.model_validate(self)

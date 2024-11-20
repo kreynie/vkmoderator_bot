@@ -25,7 +25,7 @@ class Stuff(ProvidesUserMixin, Base):
     group: Mapped["StuffGroup"] = relationship(back_populates="stuffs", lazy="immediate")
 
     def to_read_model(self) -> StuffSchema:
-        return StuffSchema.from_orm(self)
+        return StuffSchema.model_validate(self)
 
 
 @event.listens_for(Stuff, "after_delete")

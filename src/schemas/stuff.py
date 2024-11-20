@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from .stuff_group import StuffGroup
 from .user import User, UserCreateSchema
@@ -44,5 +44,4 @@ class Stuff(StuffSchema):
     user: User
     group: StuffGroup
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

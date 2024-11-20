@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from src.utils.html_parser import convert_html_to_text
 
@@ -55,5 +55,4 @@ class HotIssueSchema(BaseModel):
     text: str
     published: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

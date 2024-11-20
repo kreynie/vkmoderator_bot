@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class BaseUserSchema(BaseModel):
@@ -31,5 +31,4 @@ class UserUpdatePartialSchema(BaseUserSchema):
 
 
 class User(UserSchema):
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
