@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 project_path = Path(__file__).resolve().parent
@@ -11,35 +11,43 @@ class BaseEnvSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=project_path / ".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 
-class DBSettings(BaseModel):
+class DBSettings(BaseSettings):
     url: str = f"sqlite+aiosqlite:///{project_path / 'db.db'}"
     echo: bool = False
 
 
 class VKAPISettings(BaseEnvSettings):
-    token: str = Field(..., env="VKTOKEN")
+    token: str = Field(..., alias="VKTOKEN")
 
 
-class ChatsIDSettings(BaseEnvSettings):
-    flood: int = Field(..., env="CHAT_ID_FLOOD")
-    visiting: int = Field(..., env="CHAT_ID_VISITING")
-    moderators: int = Field(..., env="CHAT_ID_MODERATORS")
-    news: int = Field(..., env="CHAT_ID_NEWS")
-    help_requests: int = Field(..., env="CHAT_ID_HELP_REQUESTS")
+class ChatsIDSettings(BaseSettings):
+    flood: int
+    visiting: int
+    moderators: int
+    news: int
+    help_requests: int
+
+    model_config = SettingsConfigDict(
+        env_file=project_path / ".env",
+        env_file_encoding="utf-8",
+        env_prefix="CHAT_ID_",
+        extra="ignore",
+    )
 
 
 class GroupsIDSettings(BaseEnvSettings):
-    main_group: int = Field(-200352287, env="MAIN_GROUP")
-    ban_archive_group: int = Field(-200352287, env="BAN_ARCHIVE_GROUP")
+    main_group: int = Field(-200352287, alias="MAIN_GROUP")
+    ban_archive_group: int = Field(-200352287, alias="BAN_ARCHIVE_GROUP")
 
 
 class Settings(BaseEnvSettings):
     db: DBSettings = DBSettings()
     vk_api: VKAPISettings = VKAPISettings()
-    debug: bool = Field(False, env="DEBUG")
+    debug: bool = Field(False, alias="DEBUG")
 
 
 chats_id_settings: ChatsIDSettings = ChatsIDSettings()
@@ -72,7 +80,6 @@ if settings.debug:
 logger.info(f"Settings loaded: {settings.model_dump()}")
 
 __all__ = (
-    "BaseEnvSettings",
     "chats_id_settings",
     "groups_id_settings",
     "logger",
