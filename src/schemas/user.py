@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict, field_validator
+from typing import Self
+
+from pydantic import BaseModel, ConfigDict, model_validator
 
 
 class BaseUserSchema(BaseModel):
@@ -11,10 +13,10 @@ class UserSchema(BaseUserSchema):
     full_name: str | None = None
     screen_name: str | None = None
 
-    @field_validator("full_name", mode="before")
-    @classmethod
-    def set_full_name(cls, v, values) -> str:
-        return f"{values['first_name']} {values['last_name']}"
+    @model_validator(mode="after")
+    def set_full_name(self) -> Self:
+        self.full_name = f"{self.first_name} {self.last_name}"
+        return self
 
 
 class UserCreateSchema(BaseUserSchema):
