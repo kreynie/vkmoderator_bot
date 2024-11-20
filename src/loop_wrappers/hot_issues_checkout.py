@@ -22,7 +22,7 @@ async def check_for_new_hot_issues() -> HotIssueSchema | None:
 
 
 def get_next_interval_for_hot_issues_checkout(
-        minimum_minutes: int = 15, maximum_minutes: int = 25
+        minimum_minutes: int = 5, maximum_minutes: int = 10
 ) -> int:
     return randint(minimum_minutes, maximum_minutes)
 
