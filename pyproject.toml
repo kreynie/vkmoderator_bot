@@ -15,6 +15,7 @@ aiosqlite = "^0.19.0"
 alembic = "^1.12.1"
 python-dotenv = "^1.0.0"
 html2text = "^2024.2.26"
+pydantic-settings = "^2.6.1"
 
 
 [tool.poetry.group.dev.dependencies]

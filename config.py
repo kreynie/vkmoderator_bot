@@ -1,29 +1,26 @@
 from pathlib import Path
 
 from loguru import logger
-from pydantic import BaseSettings, Field
+from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 project_path = Path(__file__).resolve().parent
 
 
 class BaseEnvSettings(BaseSettings):
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(
+        env_file=project_path / ".env",
+        env_file_encoding="utf-8",
+    )
 
 
-class DBSettings(BaseSettings):
+class DBSettings(BaseModel):
     url: str = f"sqlite+aiosqlite:///{project_path / 'db.db'}"
     echo: bool = False
 
 
 class VKAPISettings(BaseEnvSettings):
     token: str = Field(..., env="VKTOKEN")
-
-
-class GoogleSettings(BaseEnvSettings):
-    credentials_path: Path = project_path / "creds.json"
-    spreadsheet: str = Field("1_QwV3b-ue0xG3McMLjO6rijjuaVP8VBhD-G1x2kOW7s", env="SPREADSHEET")
 
 
 class ChatsIDSettings(BaseEnvSettings):
@@ -42,7 +39,6 @@ class GroupsIDSettings(BaseEnvSettings):
 class Settings(BaseEnvSettings):
     db: DBSettings = DBSettings()
     vk_api: VKAPISettings = VKAPISettings()
-    google_api: GoogleSettings = GoogleSettings()
     debug: bool = Field(False, env="DEBUG")
 
 
@@ -65,6 +61,7 @@ logger.add(
 
 if settings.debug:
     import sys
+
     logger.add(
         sys.stdout,
         format="{time} {level} {message}",
@@ -72,6 +69,7 @@ if settings.debug:
         colorize=True,
     )
 
+logger.info(f"Settings loaded: {settings.model_dump()}")
 
 __all__ = (
     "BaseEnvSettings",
