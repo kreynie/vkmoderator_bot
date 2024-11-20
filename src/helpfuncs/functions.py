@@ -3,7 +3,6 @@ import re
 from asyncio import to_thread
 from functools import reduce
 from time import time
-from typing import Literal
 
 from aiohttp import ClientSession
 from vkbottle_types.codegen.objects import PhotosPhotoSizes
@@ -11,13 +10,11 @@ from vkbottle_types.objects import PhotosPhoto
 
 from config import project_path
 from src.helpfuncs.jsonfunctions import JSONHandler
-from src.schemas.registration import LegalBanRegistrationInfo
 
 json_handler = JSONHandler(project_path / "formatted.json")
 data = json_handler.get_data()
 formatted_time: dict = data["time"]
 formatted_abbreviations: dict = data["abbreviations"]
-formatted_legal_abbreviations: dict = data["ltabbreviations"]
 formatted_games: dict = data["games"]
 
 
@@ -46,49 +43,6 @@ def time_to_text(ban_time: str) -> str | None:
     if formatted_time.get(ban_time) is None:
         return None
     return ban_time
-
-
-def get_sheets_row(parameters: LegalBanRegistrationInfo) -> list[str]:
-    return _generate_legal_common_row(parameters)
-
-
-def _generate_legal_common_row(parameters: LegalBanRegistrationInfo) -> list[str]:
-    common_part = [
-        parameters.violator_link,
-        parameters.violator_screen_name
-        if parameters.violator_screen_name != parameters.violator_link
-        else " ",
-        parameters.reason,
-        parameters.violation_link if parameters.violation_link else " ",
-        " ",
-        parameters.screenshot_link,
-    ]
-
-    if not parameters.is_group and parameters.dialog_time is None:
-        parameters.dialog_time = " "
-
-    if parameters.dialog_time is not None:
-        common_part.append(parameters.dialog_time)
-
-    if parameters.is_group and parameters.flea is None:
-        parameters.flea = "FALSE"
-
-    if parameters.flea is not None:
-        common_part.insert(0, parameters.flea)
-
-    common_part.extend([parameters.game, parameters.moderator_key])
-
-    return common_part
-
-
-def get_legal_abbreviation_text(
-    abbreviation: str,
-    abbreviation_type: Literal["abbreviations", "games"],
-) -> str | None:
-    if abbreviation_type == "games":
-        return formatted_games.get(abbreviation)
-    if abbreviation_type == "abbreviations":
-        return formatted_legal_abbreviations.get(abbreviation)
 
 
 def get_reformatted_comment(comment: str) -> str | None:

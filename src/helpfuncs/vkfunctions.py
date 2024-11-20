@@ -4,7 +4,7 @@ from vkbottle import VKAPIError
 from vkbottle.tools import PhotoWallUploader
 from vkbottle_types.codegen.objects import GroupsGroupFull
 from vkbottle_types.responses.photos import PhotosPhoto
-from vkbottle_types.responses.wall import PostResponseModel
+from vkbottle_types.responses.wall import WallPostResponseModel
 
 from config import groups_id_settings
 from src.schemas import VKObjectInfo
@@ -79,7 +79,10 @@ async def get_user_info(
     return UserSchema(**info[0].dict())
 
 
-async def get_group_info(group: str, fields: Optional[list[str]] = None) -> GroupsGroupFull:
+async def get_group_info(
+    group: str,
+    fields: Optional[list[str]] = None,
+) -> GroupsGroupFull:
     """
     Get VK group's page information
 
@@ -124,20 +127,30 @@ async def get_object_info(link: str) -> VKObjectInfo:
 
 
 async def ban(*args, **kwargs) -> int:
-    return await vk_api.groups.ban(group_id=groups_id_settings.main_group, *args, **kwargs)
+    return await vk_api.groups.ban(
+        group_id=groups_id_settings.main_group,
+        *args,
+        **kwargs,
+    )
 
 
 async def check_if_banned(user_id: int) -> bool:
     try:
-        await vk_api.groups.get_banned(group_id=groups_id_settings.main_group, owner_id=user_id)
+        await vk_api.groups.get_banned(
+            group_id=groups_id_settings.main_group,
+            owner_id=user_id,
+        )
         return True
     except VKAPIError[104]:
         return False
 
 
-async def post(**kwargs) -> PostResponseModel | None:
+async def post(**kwargs) -> WallPostResponseModel | None:
     try:
-        return await vk_api.wall.post(owner_id=-groups_id_settings.ban_archive_group, **kwargs)
+        return await vk_api.wall.post(
+            owner_id=-groups_id_settings.ban_archive_group,
+            **kwargs,
+        )
     except VKAPIError:
         return None
 
@@ -162,7 +175,9 @@ async def get_photos(photos: str | list) -> PhotosPhoto | list[PhotosPhoto]:
         photos = [photos.removeprefix("photo")]
         result = await vk_api.photos.get_by_id(photos)
         return result[0]
-    return await vk_api.photos.get_by_id([photo.removeprefix("photo") for photo in photos])
+    return await vk_api.photos.get_by_id(
+        [photo.removeprefix("photo") for photo in photos]
+    )
 
 
 async def send_reaction(peer_id: int, conversation_message_id: int, reaction_id: int):
@@ -173,17 +188,18 @@ async def send_reaction(peer_id: int, conversation_message_id: int, reaction_id:
     :param conversation_message_id: local message id
     :param reaction_id: reaction id to be sent
     """
-    await vk_api.request(
-        method="messages.sendReaction",
-        data={
-            "peer_id": peer_id,
-            "cmid": conversation_message_id,
-            "reaction_id": reaction_id,
-        },
+    await vk_api.messages.send_reaction(
+        peer_id=peer_id,
+        conversation_message_id=conversation_message_id,
+        reaction=reaction_id,
     )
 
 
-async def invite_chat_user(chat_id: int, user_id: int, visible_message_count: int | None = None):
+async def invite_chat_user(
+    chat_id: int,
+    user_id: int,
+    visible_message_count: int | None = None,
+):
     """
     Invites user to a chat
 
@@ -191,10 +207,18 @@ async def invite_chat_user(chat_id: int, user_id: int, visible_message_count: in
     :param user_id: User's ID to be added to the chat
     :param visible_message_count: Show invited user previous messages
     """
-    await vk_api.messages.add_chat_user(chat_id=chat_id, user_id=user_id, visible_message_count=visible_message_count)
+    await vk_api.messages.add_chat_user(
+        chat_id=chat_id,
+        user_id=user_id,
+        visible_message_count=visible_message_count,
+    )
 
 
-async def remove_chat_user(chat_id: int, user_id: int | None = None, member_id: int | None = None):
+async def remove_chat_user(
+    chat_id: int,
+    user_id: int | None = None,
+    member_id: int | None = None,
+):
     """
     Remove a user from a chat
 
@@ -202,8 +226,12 @@ async def remove_chat_user(chat_id: int, user_id: int | None = None, member_id: 
     :param user_id: User ID to be removed from the chat (mutually exclusive with member_id)
     :param member_id: Member ID to be removed from the chat (mutually exclusive with user_id)
     """
-    assert not (user_id is None and member_id is None), "At least one of user_id or member_id must be provided"
-    await vk_api.messages.remove_chat_user(chat_id=chat_id, user_id=user_id, member_id=member_id)
+    assert not (
+        user_id is None and member_id is None
+    ), "At least one of user_id or member_id must be provided"
+    await vk_api.messages.remove_chat_user(
+        chat_id=chat_id, user_id=user_id, member_id=member_id
+    )
 
 
 async def edit_manager(user_id: int, remove: bool = False):
@@ -214,4 +242,6 @@ async def edit_manager(user_id: int, remove: bool = False):
     :param remove: If True, remove the manager role; if False, set the editor role
     """
     role = "editor" if not remove else None
-    await vk_api.groups.edit_manager(group_id=groups_id_settings.ban_archive_group, user_id=user_id, role=role)
+    await vk_api.groups.edit_manager(
+        group_id=groups_id_settings.ban_archive_group, user_id=user_id, role=role
+    )

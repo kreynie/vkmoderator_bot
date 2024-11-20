@@ -29,8 +29,8 @@ async def change_rights(
     group_id = StuffGroups(group)
     user_info = await vkf.get_user_info(user)
 
-    if group_id not in (StuffGroups.MODERATOR, StuffGroups.LEGAL):
-        return await message.answer(f"use mod={StuffGroups.MODERATOR.value} or legal={StuffGroups.LEGAL.value} group")
+    if group_id != StuffGroups.MODERATOR:
+        return await message.answer(f"use mod={StuffGroups.MODERATOR.value} group")
 
     stuff = await StuffsService().get_stuff_by(uow, user_id=user_info.id, group_id=group_id.value)
     update_stuff_partial = StuffUpdatePartialSchema(id=stuff.id, allowance=new_allowance)

@@ -154,7 +154,7 @@ async def post(
         logger.error(e)
         return (
             "❌ Не удалось сделать пост в бане\n"
-            f"Ошибка на стороне ВК (код {e.code}):{e.description}"
+            f"Ошибка на стороне ВК (код {e.code}):{e.error_msg}"
         )
     except Exception as e:
         logger.error(e)

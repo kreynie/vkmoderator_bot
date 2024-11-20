@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 from src.utils.html_parser import convert_html_to_text
 
@@ -10,7 +10,8 @@ class Translation(BaseModel):
     title: str
     text: str
 
-    @validator("text")
+    @field_validator("text")
+    @classmethod
     def remove_html_stuff(cls, text: str) -> str:
         return convert_html_to_text(text)
 
@@ -28,7 +29,8 @@ class Datum(BaseModel):
     system_tags: list[str]
     translations: Translations
 
-    @validator("published", pre=True)
+    @field_validator("published", mode="before")
+    @classmethod
     def prepare_published(cls, value: str) -> str:
         """Prepares published date for use with"""
         original_date_time = datetime.fromisoformat(value)

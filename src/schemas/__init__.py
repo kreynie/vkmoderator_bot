@@ -1,7 +1,6 @@
 __all__ = (
     "BannerInfo",
     "BanRegistrationInfo",
-    "LegalBanRegistrationInfo",
     "Stuff",
     "User",
     "VKObjectInfo",
@@ -9,6 +8,6 @@ __all__ = (
 
 
 from .object_validators import BannerInfo, VKObjectInfo
-from .registration import BanRegistrationInfo, LegalBanRegistrationInfo
+from .registration import BanRegistrationInfo
 from .stuff import Stuff
 from .user import User

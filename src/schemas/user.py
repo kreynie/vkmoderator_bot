@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 
 class BaseUserSchema(BaseModel):
@@ -11,7 +11,8 @@ class UserSchema(BaseUserSchema):
     full_name: str | None = None
     screen_name: str | None = None
 
-    @validator("full_name", always=True)
+    @field_validator("full_name")
+    @classmethod
     def set_full_name(cls, v, values) -> str:
         return f"{values['first_name']} {values['last_name']}"
 
@@ -30,7 +31,5 @@ class UserUpdatePartialSchema(BaseUserSchema):
 
 
 class User(UserSchema):
-    # stuff: list[Stuff] | None  # TODO: доделать
-
     class Config:
         orm_mode = True

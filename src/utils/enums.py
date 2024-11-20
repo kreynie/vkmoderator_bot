@@ -14,7 +14,6 @@ class Rights(IntEnum):
 class StuffGroups(IntEnum):
     ANY = 0
     MODERATOR = 1
-    LEGAL = 2
 
 
 class SheetsNames(Enum):
@@ -32,6 +31,8 @@ class ChatPeers(IntEnum):
     MODERATORS = chat_prefix_number + chat_ids.moderators
     NEWS = chat_prefix_number + chat_ids.news
     HELP_REQUESTS = chat_prefix_number + chat_ids.help_requests
+
+    DED_CHAT = 239299301
 
 
 class ReactionIDs(IntEnum):

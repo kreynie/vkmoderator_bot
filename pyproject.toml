@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vk-bot-moderator"
-version = "2.0.9"
+version = "2.0.10"
 description = ""
 authors = ["kreyNie <kreynie@vk.com>"]
 readme = "README.md"
@@ -8,13 +8,9 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
-vkbottle = "^4.3.12"
+vkbottle = "^4.4.2.post1"
 sqlalchemy = "^2.0.23"
-google-api-python-client = "^2.106.0"
-google-auth-httplib2 = "^0.1.1"
-google-auth-oauthlib = "^1.1.0"
 loguru = "^0.7.2"
-pyppeteer = "^1.0.2"
 aiosqlite = "^0.19.0"
 alembic = "^1.12.1"
 python-dotenv = "^1.0.0"

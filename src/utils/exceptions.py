@@ -61,7 +61,7 @@ def handle_errors_decorator(
                     exc: exc_message for exc, exc_message in custom_exc if isinstance(exc, VKAPIError)
                 } if custom_exc else {}
                 provided_vk_api_errors.update(
-                    {VKAPIError: f"Ошибка при выполнении VK API запроса\n{e.code} - {e.description}"}
+                    {VKAPIError: f"Ошибка при выполнении VK API запроса\n{e.code} - {e.error_msg}"}
                 )
                 await handle_custom_exceptions(message_answer, e, provided_vk_api_errors)
             except db_exc.EntityAlreadyExists:
