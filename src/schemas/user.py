@@ -11,7 +11,7 @@ class UserSchema(BaseUserSchema):
     full_name: str | None = None
     screen_name: str | None = None
 
-    @field_validator("full_name")
+    @field_validator("full_name", mode="before")
     @classmethod
     def set_full_name(cls, v, values) -> str:
         return f"{values['first_name']} {values['last_name']}"
