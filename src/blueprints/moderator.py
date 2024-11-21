@@ -32,15 +32,24 @@ async def ban_user_in_group(
     comment: str = "",
     ban_time: str = "",
 ) -> None:
+    help_text_required = 'Воспользуйся командой "Помощь" для справки'
     if not user:
-        return await message.answer(
-            'Нет нарушителя. Воспользуйся командой "Помощь" для справки'
-        )
+        return await message.answer(f"Нет нарушителя.\n{help_text_required}")
 
     if not comment:
-        return await message.answer("Забыл причину бана")
+        return await message.answer(f"Забыл причину бана.\n{help_text_required}")
 
-    user_info = await vkf.get_user_info(user)
+    try:
+        user_info = await vkf.get_user_info(user)
+    except VKAPIError as e:
+        logger.error(e)
+        return await message.answer("❌ Не удалось получить информацию о пользователе\n"
+                                    f"Ошибка на стороне VK (код {e.code}):{e.error_msg}")
+    except Exception as e:
+        logger.error(e)
+        return await message.answer("❌ Не удалось получить информацию о пользователе\n"
+                                    "Произошла непредвиденная ошибка")
+
     already_banned = await vkf.check_if_banned(user_info.id)
     if already_banned:
         return await message.answer("Пользователь уже забанен в группе")
@@ -56,7 +65,7 @@ async def ban_user_in_group(
 
     if return_reason is not None:
         return await message.answer(
-            f"⚠️Произошла ошибка во время попытки бана\n{return_reason}"
+            f"⚠️Произошла ошибка во время попытки оформления бана\n{return_reason}"
         )
 
     await message.answer(ban_result)
@@ -83,7 +92,11 @@ async def perform_ban(
     if is_post_needed and not attachments:
         return None, "Проверь картинки для бани"
 
-    banner = await get_banner_info(banner_vk_id)
+    try:
+        banner = await get_banner_info(banner_vk_id)
+    except Exception as e:
+        logger.error(e)
+        return None, "❌ Не удалось получить информацию о баннере (модераторе) для поста"
 
     time_unix = funcs.calculate_unix_time_after_period(ban_time)
 
@@ -92,6 +105,20 @@ async def perform_ban(
         end_time_text = (
             f"Болеть будет до {strftime('%d.%m.%y %H:%M', localtime(time_unix))}"
         )
+
+    post_info = ""
+    post_error_occurred = False
+    if is_post_needed:
+        ban_info = BanRegistrationInfo(
+            banner_info=banner,
+            user_info=user_info,
+            comment=comment,
+            ban_time=ban_time_text,
+        )
+        post_error_occurred, post_info = await post(ban_info, attachments)
+
+    if is_post_needed and post_error_occurred:
+        return None, post_info
 
     result = await vkf.ban(
         owner_id=user_info.id,
@@ -104,19 +131,8 @@ async def perform_ban(
     if result != 1:
         return None, "Не удалось забанить человека на стороне VK"
 
-    post_info = ""
-    if is_post_needed:
-        ban_info = BanRegistrationInfo(
-            banner_info=banner,
-            user_info=user_info,
-            comment=comment,
-            ban_time=ban_time_text,
-        )
-        post_info = await post(ban_info, attachments)
-        post_info = f"\n\n{post_info}"
-
     return (
-        f"{user_info.full_name} получил банхаммером\n{end_time_text}{post_info}",
+        f"{user_info.full_name} получил банхаммером\n{end_time_text}\n\n{post_info}",
         None,
     )
 
@@ -133,8 +149,18 @@ async def get_banner_info(user_vk_id: int, uow: IUnitOfWork = UOWDep) -> BannerI
 async def post(
     ban_info: BanRegistrationInfo,
     photos: list,
-) -> str:
-    uploaded_photos = await vkf.upload_images(photos)
+) -> tuple[bool, str]:
+    try:
+        uploaded_photos = await vkf.upload_images(photos)
+    except VKAPIError as e:
+        logger.error(e)
+        return True, (
+            "❌ Не удалось загрузить фото\n"
+            f"Ошибка на стороне ВК (код {e.code}):{e.error_msg}"
+        )
+    except Exception as e:
+        logger.error(e)
+        return True, "❌ Не удалось загрузить фото для бани. Попробуй повторить"
     post_text = (
         f"{ban_info.user_info.full_name}",
         f"https://vk.com/id{ban_info.user_info.id}",
@@ -150,11 +176,11 @@ async def post(
         )
     except VKAPIError as e:
         logger.error(e)
-        return (
+        return True, (
             "❌ Не удалось сделать пост в бане\n"
             f"Ошибка на стороне ВК (код {e.code}):{e.error_msg}"
         )
     except Exception as e:
         logger.error(e)
-        return "❌ Не удалось сделать пост в бане."
-    return "✔ Пост в бане опубликован"
+        return True, "❌ Не удалось сделать пост в бане по непредвиденной причине"
+    return False, "✔ Пост в бане опубликован"

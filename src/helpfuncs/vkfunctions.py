@@ -3,7 +3,7 @@ from typing import Literal, Optional
 from vkbottle import VKAPIError
 from vkbottle.tools import PhotoWallUploader
 from vkbottle_types.codegen.objects import GroupsGroupFull
-from vkbottle_types.responses.photos import PhotosPhoto
+from vkbottle_types.objects import PhotosPhoto
 from vkbottle_types.responses.wall import WallPostResponseModel
 
 from config import groups_id_settings
@@ -25,7 +25,7 @@ async def upload_image(photo: str | bytes | PhotosPhoto) -> str:
     :return: String in format photo<owner_id>_<photo_id>
     """
     photo_uploader = PhotoWallUploader(vk_api)
-    if isinstance(photo, PhotosPhoto):
+    if not isinstance(photo, str) and not isinstance(photo, bytes):
         photo = await funcs.get_photo(photo)
 
     raw_photo = await photo_uploader.read(photo)
