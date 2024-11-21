@@ -71,7 +71,7 @@ async def get_user_info(
     if "screen_name" not in fields:
         fields.append("screen_name")
 
-    info = await vk_api.users.get(matched, fields, name_case)
+    info = await vk_api.users.get(user_ids=matched, fields=fields, name_case=name_case)
 
     if not info:
         raise ObjectInformationRequestError(f"{user=}")
@@ -173,7 +173,7 @@ async def get_photos(photos: str | list) -> PhotosPhoto | list[PhotosPhoto]:
     """
     if isinstance(photos, str):
         photos = [photos.removeprefix("photo")]
-        result = await vk_api.photos.get_by_id(photos)
+        result = await vk_api.photos.get_by_id(photos=photos)
         return result[0]
     return await vk_api.photos.get_by_id(
         [photo.removeprefix("photo") for photo in photos]
@@ -230,7 +230,9 @@ async def remove_chat_user(
         user_id is None and member_id is None
     ), "At least one of user_id or member_id must be provided"
     await vk_api.messages.remove_chat_user(
-        chat_id=chat_id, user_id=user_id, member_id=member_id
+        chat_id=chat_id,
+        user_id=user_id,
+        member_id=member_id,
     )
 
 
@@ -243,5 +245,7 @@ async def edit_manager(user_id: int, remove: bool = False):
     """
     role = "editor" if not remove else None
     await vk_api.groups.edit_manager(
-        group_id=groups_id_settings.ban_archive_group, user_id=user_id, role=role
+        group_id=groups_id_settings.ban_archive_group,
+        user_id=user_id,
+        role=role,
     )
