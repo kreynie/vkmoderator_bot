@@ -120,22 +120,22 @@ def split_for_text_for_command(text: str) -> list[str]:
     """
     Split text for vkbottle command correct validation.
 
-    This function takes a command text as input and cascade deletes last parameter.
+    This function takes a command text as input and cascade adds parameters.
 
     :param text: The command text to split.
     :return: A list of cascades.
 
     >>> split_for_text_for_command("Права <user> <group:int> <new_allowance:int>")
     >>> [
-    >>> "Права <user> <group:int> <new_allowance:int>",
-    >>> "Права <user> <group:int>",
-    >>> "Права <user>",
     >>> "Права",
+    >>> "Права <user>",
+    >>> "Права <user> <group:int>",
+    >>> "Права <user> <group:int> <new_allowance:int>",
     >>> ]
     """
     result = []
     text = text.split(" ")
-    for i in range(len(text), 0, -1):
+    for i in range(len(text)):
         result.append(" ".join(text[:i]))
     return result
 
