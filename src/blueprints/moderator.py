@@ -15,7 +15,6 @@ from src.schemas.registration import BanRegistrationInfo
 from src.schemas.user import UserSchema
 from src.services.stuffs import StuffsService
 from src.utils.dependencies import UOWDep
-from src.utils.exceptions import handle_errors_decorator
 from src.utils.unitofwork import IUnitOfWork
 from .base_labeler import labeler
 from config import logger
@@ -27,7 +26,6 @@ ReturnResult: TypeAlias = tuple[str | None, str | None]
     access=[rules.StuffGroups.MODERATOR, rules.Rights.LOW],
     text=funcs.split_for_text_for_command("Бан <user> <comment> <ban_time>"),
 )
-@handle_errors_decorator()
 async def ban_user_in_group(
     message: Message,
     user: str = "",

@@ -7,7 +7,6 @@ from src.schemas import stuff, user
 from src.services.stuffs import StuffsService
 from src.utils.dependencies import UOWDep
 from src.utils.enums import ChatPeers, ReactionIDs, StuffGroups, chat_ids
-from src.utils.exceptions import handle_errors_decorator
 from src.utils.unitofwork import IUnitOfWork
 from asyncio import sleep as async_sleep
 
@@ -20,7 +19,6 @@ primary_chat_peer_enum = ChatPeers.NEWS
     peer_ids=primary_chat_peer_enum.value,
     text="<invited_user> МВ<( )#key:int><!>",
 )
-@handle_errors_decorator(send_answer_message=False)
 async def add_new_stuff(
     message: Message,
     invited_user: str,
@@ -98,7 +96,6 @@ async def add_new_stuff(
     rules.ChatActionRule("chat_kick_user"),
     peer_ids=primary_chat_peer_enum.value,
 )
-@handle_errors_decorator(send_answer_message=False)
 async def remove_stuff(message: Message, uow: IUnitOfWork = UOWDep) -> None:
     user_id = message.action.member_id
     stuff_info = await StuffsService().get_stuff_by(

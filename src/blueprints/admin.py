@@ -6,7 +6,6 @@ from src.schemas.stuff import StuffUpdatePartialSchema
 from src.services.stuffs import StuffsService
 from src.utils.dependencies import UOWDep
 from src.utils.enums import StuffGroups
-from src.utils.exceptions import handle_errors_decorator
 from src.utils.unitofwork import IUnitOfWork
 from .base_labeler import labeler
 
@@ -15,7 +14,6 @@ from .base_labeler import labeler
     access=[rules.StuffGroups.ANY, rules.Rights.ADMIN],
     text=funcs.split_for_text_for_command("Права <user> <group:int> <new_allowance:int>"),
 )
-@handle_errors_decorator()
 async def change_rights(
     message: Message,
     user: str = "",

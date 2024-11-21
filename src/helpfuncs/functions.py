@@ -127,15 +127,15 @@ def split_for_text_for_command(text: str) -> list[str]:
 
     >>> split_for_text_for_command("Права <user> <group:int> <new_allowance:int>")
     >>> [
-    >>> "Права",
-    >>> "Права <user>",
-    >>> "Права <user> <group:int>",
     >>> "Права <user> <group:int> <new_allowance:int>",
+    >>> "Права <user> <group:int>",
+    >>> "Права <user>",
+    >>> "Права",
     >>> ]
     """
     result = []
     text = text.split(" ")
-    for i in range(len(text)):
+    for i in range(len(text), 0, -1):
         result.append(" ".join(text[:i]))
     return result
 

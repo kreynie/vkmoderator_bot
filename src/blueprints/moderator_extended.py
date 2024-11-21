@@ -9,7 +9,6 @@ from src.helpfuncs.list_stuffs_utils import list_stuff_groups
 from src.schemas import stuff as stuff_schema, user as user_schema
 from src.services import StuffsService
 from src.utils.dependencies import UOWDep
-from src.utils.exceptions import handle_errors_decorator
 from src.utils.unitofwork import IUnitOfWork
 from .base_labeler import labeler
 
@@ -20,7 +19,6 @@ formatted_json = JSONHandler(project_path / "formatted.json")
     access=[rules.StuffGroups.MODERATOR, rules.Rights.MIDDLE],
     text=funcs.split_for_text_for_command("Добмод <user> <key:int>"),
 )
-@handle_errors_decorator()
 async def add_moderator(
     message: Message,
     user: str = None,
@@ -49,7 +47,6 @@ async def add_moderator(
     access=[rules.StuffGroups.MODERATOR, rules.Rights.MIDDLE],
     text=funcs.split_for_text_for_command("Удалмод <user>"),
 )
-@handle_errors_decorator()
 async def delete_moderator(message: Message, user: str = None, uow: IUnitOfWork = UOWDep) -> None:
     if user is None:
         return await message.answer("Нет ссылки на страницу!")
@@ -66,7 +63,6 @@ async def delete_moderator(message: Message, user: str = None, uow: IUnitOfWork 
     access=[rules.StuffGroups.MODERATOR, rules.Rights.MIDDLE],
     text="Модсписок",
 )
-@handle_errors_decorator()
 async def list_moderators(message: Message, uow: IUnitOfWork = UOWDep) -> None:
     service = StuffsService()
     result = await list_stuff_groups(
