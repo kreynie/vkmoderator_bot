@@ -47,6 +47,7 @@ async def add_new_stuff(
         await vkf.vk_api.messages.send(
             peer_id=ChatPeers.DED_CHAT.value,
             message=f"Не смог добавить @id{user_info.id} (пользователя) в базу бота.\nОшибка: {e}",
+            random_id=0,
         )
         return
 

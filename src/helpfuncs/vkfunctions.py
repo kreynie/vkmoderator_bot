@@ -190,8 +190,8 @@ async def send_reaction(peer_id: int, conversation_message_id: int, reaction_id:
     """
     await vk_api.messages.send_reaction(
         peer_id=peer_id,
-        conversation_message_id=conversation_message_id,
-        reaction=reaction_id,
+        cmid=conversation_message_id,
+        reaction_id=reaction_id,
     )
 
 
