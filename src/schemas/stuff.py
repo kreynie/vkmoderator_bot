@@ -30,10 +30,10 @@ class StuffUpdateSchema(StuffSchema):
 
 
 class StuffUpdatePartialSchema(StuffSchema):
-    user_id: int | None
-    group_id: int | None
-    key: int | None
-    allowance: int | None
+    user_id: int | None = None
+    group_id: int | None = None
+    key: int | None = None
+    allowance: int | None = None
 
 
 class StuffDeleteSchema(StuffUpdatePartialSchema):
