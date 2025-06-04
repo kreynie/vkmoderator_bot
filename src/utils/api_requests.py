@@ -9,11 +9,8 @@ def fetch_active_issues() -> RequestResponse:
 
     querystring = {
         "include": "translations",
-        "filter\\[system_tags\\]": "wotb",
-        "filter\\[translations.lang\\]": "ru",
-        "filter\\[status\\]": "active",
         "sort": "-published",
-        "filter[system_tags]": "wotb",
+        "filter[system_tags]": "tb",
         "filter[translations.lang]": "ru",
         "filter[status]": "active"
     }
