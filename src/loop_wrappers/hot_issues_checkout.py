@@ -33,7 +33,7 @@ async def check_hot_issues() -> None:
     if new_issue is None:
         return
 
-    issue_url = f"https://lesta.ru/support/ru/products/wotb/hot-issues/{new_issue.id}/"
+    issue_url = f"https://lesta.ru/support/ru/products/tb/hot-issues/{new_issue.id}/"
     send_chat_peer_id = ChatPeers.NEWS.value
     message = (f"{new_issue.title}\n"
                f"Время публикации: {datetime.fromisoformat(new_issue.published):%d.%m.%Y в %H:%M }\n"
