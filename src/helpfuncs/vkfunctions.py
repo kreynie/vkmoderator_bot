@@ -76,7 +76,7 @@ async def get_user_info(
     if not info:
         raise ObjectInformationRequestError(f"{user=}")
 
-    return UserSchema(**info[0].dict())
+    return UserSchema.model_validate(info[0].dict())
 
 
 async def get_group_info(
@@ -118,10 +118,10 @@ async def get_object_info(link: str) -> VKObjectInfo:
     """
     is_group = True
     try:
-        object_info = await get_group_info(link)
+        object_info: GroupsGroupFull = await get_group_info(link)
     except ObjectInformationRequestError:
         is_group = False
-        object_info = await get_user_info(link)
+        object_info: UserSchema = await get_user_info(link)
 
     return VKObjectInfo(object=object_info, is_group=is_group)
 

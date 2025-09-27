@@ -19,6 +19,7 @@ async def check_for_new_hot_issues() -> HotIssueSchema | None:
         logger.debug("Response is ok, processing new issues...")
         return await hot_issues_processor.process_issues(new_issues.content)
     logger.debug("Bad response from Lesta ;( Maybe try again later")
+    return None
 
 
 def get_next_interval_for_hot_issues_checkout(
@@ -29,6 +30,7 @@ def get_next_interval_for_hot_issues_checkout(
 
 @vk_loop_wrapper.interval(minutes=get_next_interval_for_hot_issues_checkout())
 async def check_hot_issues() -> None:
+    return
     new_issue = await check_for_new_hot_issues()
     if new_issue is None:
         return
